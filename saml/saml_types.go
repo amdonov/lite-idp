@@ -21,6 +21,38 @@ type AuthnRequest struct {
     RelayState string
 }
 
+type ArtifactResolveEnvelope struct {
+    XMLName xml.Name `xml:"http://schemas.xmlsoap.org/soap/envelope/ Envelope"`
+    Body ArtifactResolveBody
+}
+
+type ArtifactResolveBody struct {
+    XMLName xml.Name `xml:"http://schemas.xmlsoap.org/soap/envelope/ Body"`
+    ArtifactResolve ArtifactResolve
+}
+
+type ArtifactResolve struct {
+    RequestAbstractType
+    XMLName xml.Name `xml:"urn:oasis:names:tc:SAML:2.0:protocol ArtifactResolve"`
+    Artifact string `xml:"urn:oasis:names:tc:SAML:2.0:protocol Artifact"`
+}
+
+type ArtifactResponseEnvelope struct {
+    XMLName xml.Name `xml:"http://schemas.xmlsoap.org/soap/envelope/ Envelope"`
+    Body ArtifactResponseBody
+}
+
+type ArtifactResponseBody struct {
+    XMLName xml.Name `xml:"http://schemas.xmlsoap.org/soap/envelope/ Body"`
+    ArtifactResponse ArtifactResponse
+}
+
+type ArtifactResponse struct {
+    StatusResponseType
+    XMLName xml.Name `xml:"urn:oasis:names:tc:SAML:2.0:protocol ArtifactResponse"`
+    Response Response
+}
+
 type StatusResponseType struct {
     ID string `xml:",attr"`
     Version string `xml:",attr"`
