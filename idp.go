@@ -34,7 +34,7 @@ func main() {
     client := redis.NewTCPClient(&redis.Options{
         Addr: "sp.example.com:6379"})
     handler := &authHandler{}
-    handler.authenticator = authentication.NewDumbAuthenciator()
+    handler.authenticator = authentication.NewPKIAuthenticator()
     handler.retriever = attributes.NewDumbRetriver()
     handler.requestParser = protocol.NewRedirectRequestParser()
     marshallers := make(map[string]protocol.ResponseMarshaller)
