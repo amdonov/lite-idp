@@ -1,22 +1,31 @@
 package attributes
 import "github.com/amdonov/lite-idp/authentication"
+import "io"
+import "errors"
+import "encoding/json"
 
 type Retriever interface {
     Retrieve(*authentication.AuthenticatedUser) (map[string][]string, error)
 }
 
-func NewDumbRetriver() Retriever {
-    return &dumbRetriever{}
+func NewJSONRetriever(jsonData io.Reader) (Retriever, error) {
+    var people map[string]map[string][]string
+    decoder := json.NewDecoder(jsonData)
+    err := decoder.Decode(&people)
+    if err!=nil {
+        return nil, err
+    }
+    return &jsonRetriever{people}, nil
 }
 
-type dumbRetriever struct {
-
+type jsonRetriever struct {
+    people map[string]map[string][]string
 }
 
-func (_ *dumbRetriever) Retrieve(user *authentication.AuthenticatedUser) (map[string][]string, error) {
-    atts := make(map[string][]string)
-    atts["givenName"] = []string{"John"}
-    atts["surName"] = []string{"Doe"}
-    atts["roles"] = []string{"user", "admin"}
-    return atts, nil
+func (store *jsonRetriever) Retrieve(user *authentication.AuthenticatedUser) (map[string][]string, error) {
+    attributes, found := store.people[user.Name]
+    if !found {
+        return nil, errors.New("No attributes found for "+user.Name)
+    }
+    return attributes, nil
 }

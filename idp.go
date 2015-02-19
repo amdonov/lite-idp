@@ -27,7 +27,7 @@ func main() {
     defer cert.Close()
     key, err := os.Open("server.pem")
     if err!=nil {
-        log.Fatal("Failed to load private key..", err)
+        log.Fatal("Failed to load private key.", err)
     }
     signer, err := xmlsig.NewSigner(key, cert)
     entityId := "https://idp.example.com/lite-idp/"
@@ -35,7 +35,15 @@ func main() {
         Addr: "sp.example.com:6379"})
     handler := &authHandler{}
     handler.authenticator = authentication.NewPKIAuthenticator()
-    handler.retriever = attributes.NewDumbRetriver()
+    people, err := os.Open("users.json")
+    if err!=nil {
+        log.Fatal("Failed to open user file.", err)
+    }
+    defer people.Close()
+    handler.retriever, err = attributes.NewJSONRetriever(people)
+    if err!=nil {
+        log.Fatal("Failed to read user file.", err)
+    }
     handler.requestParser = protocol.NewRedirectRequestParser()
     marshallers := make(map[string]protocol.ResponseMarshaller)
     marshallers["urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Artifact"] = protocol.NewArtifactResponseMarshaller(client)
@@ -76,6 +84,10 @@ func (handler *authHandler) ServeHTTP(writer http.ResponseWriter, request *http.
     }
     // Look up any attributes
     atts, err := handler.retriever.Retrieve(user)
+    if err!=nil {
+        http.Error(writer, err.Error(), 500)
+        return
+    }
     // Create a SAML Response
     response := handler.generator.Generate(user, authRequest, atts)
     // Return the response based upon binding
