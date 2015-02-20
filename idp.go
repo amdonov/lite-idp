@@ -40,10 +40,11 @@ func main() {
         log.Fatal("Failed to open user file.", err)
     }
     defer people.Close()
-    handler.retriever, err = attributes.NewJSONRetriever(people)
+    retriever, err := attributes.NewJSONRetriever(people)
     if err!=nil {
         log.Fatal("Failed to read user file.", err)
     }
+    handler.retriever = retriever
     handler.requestParser = protocol.NewRedirectRequestParser()
     marshallers := make(map[string]protocol.ResponseMarshaller)
     marshallers["urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Artifact"] = protocol.NewArtifactResponseMarshaller(client)
@@ -51,9 +52,10 @@ func main() {
     handler.marshallers = marshallers
     handler.generator = protocol.NewDefaultGenerator(entityId)
     http.Handle("/SAML2/Redirect/SSO", handler)
-
+    queryHandler := &queryHandler{signer, retriever, entityId}
     artHandler := &artifactHandler{client, signer, entityId}
     http.Handle("/SAML2/SOAP/ArtifactResolution", artHandler)
+    http.Handle("/SAML2/SOAP/AttributeQuery", queryHandler)
     config := &tls.Config{ClientAuth:tls.RequireAnyClientCert}
     server := http.Server{TLSConfig:config, Addr:":443"}
     if err := server.ListenAndServeTLS("server.crt", "server.pem"); err !=nil {
@@ -67,6 +69,68 @@ type authHandler struct {
     retriever attributes.Retriever
     generator protocol.ResponseGenerator
     marshallers map[string]protocol.ResponseMarshaller
+}
+
+type queryHandler struct {
+    signer xmlsig.Signer
+    retriever attributes.Retriever
+    entityId string
+}
+
+func (handler *queryHandler) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
+    decoder := xml.NewDecoder(request.Body)
+    var attributeEnv attributes.AttributeQueryEnv
+    err := decoder.Decode(&attributeEnv)
+    if err!=nil {
+        http.Error(writer, err.Error(), 500)
+        return
+    }
+    query := attributeEnv.Body.Query
+    name := query.Subject.NameID.Value
+    format := query.Subject.NameID.Format
+    user := &authentication.AuthenticatedUser{Name:name, Format:format}
+    atts, err := handler.retriever.Retrieve(user)
+    if err!=nil {
+        http.Error(writer, err.Error(), 500)
+        return
+    }
+    var attrResp attributes.AttributeRespEnv
+    resp := &attrResp.Body.Response
+    resp.ID = uuid.NewV4().String()
+    resp.InResponseTo =query.ID
+    resp.Version="2.0"
+    now := time.Now()
+    resp.IssueInstant = now
+    resp.Issuer= saml.NewIssuer(handler.entityId)
+    a := &saml.Assertion{}
+    a.Issuer = resp.Issuer
+    a.IssueInstant = now
+    a.ID = uuid.NewV4().String()
+    a.Version="2.0"
+    a.Subject = &saml.Subject{}
+    a.Subject.NameID = query.Subject.NameID
+    a.AttributeStatement = saml.NewAttributeStatement(atts)
+    a.Conditions = &saml.Conditions{}
+    a.Conditions.NotBefore = now
+    fiveMinutes, _ := time.ParseDuration("5m")
+    fiveFromNow := now.Add(fiveMinutes)
+    a.Conditions.NotOnOrAfter = fiveFromNow
+    a.Conditions.AudienceRestriction = &saml.AudienceRestriction{Audience:query.Issuer}
+    resp.Status = protocol.NewStatus(true)
+    resp.Assertion = a
+
+    var xmlbuff bytes.Buffer
+    memWriter := bufio.NewWriter(&xmlbuff)
+    encoder := xml.NewEncoder(memWriter)
+    encoder.Encode(attrResp)
+    memWriter.Flush()
+    signed, err := handler.signer.Sign(bytes.NewReader(xmlbuff.Bytes()), a.ID)
+    if (err!=nil) {
+        http.Error(writer, err.Error(), 500)
+        return
+    }
+    defer signed.Free()
+    io.Copy(writer, signed)
 }
 
 func (handler *authHandler) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
