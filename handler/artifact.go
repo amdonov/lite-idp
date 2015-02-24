@@ -8,10 +8,7 @@ import ("gopkg.in/redis.v2"
     "github.com/satori/go.uuid"
     "time"
     "github.com/amdonov/lite-idp/saml"
-    "bytes"
-    "bufio"
-    "log"
-    "io")
+    "fmt")
 
 func NewArtifactHandler(store *redis.Client, signer xmlsig.Signer, entityId string) http.Handler {
     return &artifactHandler{store, signer, entityId}
@@ -43,18 +40,13 @@ func (handler *artifactHandler) ServeHTTP(writer http.ResponseWriter, request *h
     artResponse.Status = protocol.NewStatus(true)
     artResponse.Response = response
 
-    var buff bytes.Buffer
-    buffWriter := bufio.NewWriter(&buff)
-    encoder := xml.NewEncoder(buffWriter)
-
-    encoder.Encode(artResponseEnv)
-    buffWriter.Flush()
-
-    signed, err := handler.signer.Sign(bytes.NewReader(buff.Bytes()), response.Assertion.ID)
-    if (err!=nil) {
-        log.Println(err)
+    signature, err := handler.signer.Sign(response.Assertion)
+    if err!=nil {
+        fmt.Println(err)
     }
-    defer signed.Free()
-    io.Copy(writer, signed)
+    response.Assertion.Signature = signature
+    encoder := xml.NewEncoder(writer)
+    encoder.Encode(artResponseEnv)
+    encoder.Flush()
 }
 

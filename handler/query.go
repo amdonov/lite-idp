@@ -7,10 +7,7 @@ import ("github.com/amdonov/xmlsig"
     "github.com/satori/go.uuid"
     "time"
     "github.com/amdonov/lite-idp/saml"
-    "github.com/amdonov/lite-idp/protocol"
-    "bytes"
-    "bufio"
-    "io")
+    "github.com/amdonov/lite-idp/protocol")
 
 func NewQueryHandler(signer xmlsig.Signer, retriever attributes.Retriever, entityId string) http.Handler {
     return &queryHandler{signer, retriever, entityId}
@@ -63,17 +60,16 @@ func (handler *queryHandler) ServeHTTP(writer http.ResponseWriter, request *http
     a.Conditions.AudienceRestriction = &saml.AudienceRestriction{Audience:query.Issuer}
     resp.Status = protocol.NewStatus(true)
     resp.Assertion = a
-
-    var xmlbuff bytes.Buffer
-    memWriter := bufio.NewWriter(&xmlbuff)
-    encoder := xml.NewEncoder(memWriter)
-    encoder.Encode(attrResp)
-    memWriter.Flush()
-    signed, err := handler.signer.Sign(bytes.NewReader(xmlbuff.Bytes()), a.ID)
+    
+    signature,err:=handler.signer.Sign(a)
     if (err!=nil) {
         http.Error(writer, err.Error(), 500)
         return
     }
-    defer signed.Free()
-    io.Copy(writer, signed)
+    a.Signature = signature
+    
+
+    encoder := xml.NewEncoder(writer)
+    encoder.Encode(attrResp)
+    encoder.Flush()
 }

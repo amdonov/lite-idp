@@ -1,7 +1,8 @@
 package saml
 import ("time"
     "encoding/xml"
-    "net")
+    "net"
+    "github.com/amdonov/xmlsig")
 
 type Subject struct {
     XMLName xml.Name `xml:"urn:oasis:names:tc:SAML:2.0:assertion Subject"`
@@ -91,6 +92,7 @@ type Assertion struct {
     Version string `xml:",attr"`
     IssueInstant time.Time `xml:",attr"`
     Issuer *Issuer
+    Signature *xmlsig.Signature
     Subject *Subject
     Conditions *Conditions
     AuthnStatement *AuthnStatement

@@ -4,7 +4,6 @@ import ("log"
     "text/template"
     "github.com/amdonov/xmlsig"
     "encoding/base64"
-    "io"
     "bufio"
     "net/http"
     "encoding/xml")
@@ -50,21 +49,19 @@ type postResponseMarshaller struct {
 func (gen *postResponseMarshaller) Marshal(writer http.ResponseWriter, request *http.Request,
 response *Response, authRequest *AuthnRequest, relayState string) {
     // Don't need to change the response. Go ahead and sign it
+    signature, err := gen.signer.Sign(response.Assertion)
+    if err!=nil {
+        log.Println(err)
+        return
+    }
+    response.Assertion.Signature = signature
     var xmlbuff bytes.Buffer
     memWriter := bufio.NewWriter(&xmlbuff)
     encoder := xml.NewEncoder(memWriter)
     encoder.Encode(response)
     memWriter.Flush()
-    signed, err := gen.signer.Sign(bytes.NewReader(xmlbuff.Bytes()), response.Assertion.ID)
-    if (err!=nil) {
-        log.Println(err)
-    }
-    defer signed.Free()
-    var buff bytes.Buffer
-    memWriter = bufio.NewWriter(&buff)
-    io.Copy(memWriter, signed)
-    memWriter.Flush()
-    samlMessage := base64.StdEncoding.EncodeToString(buff.Bytes())
+
+    samlMessage := base64.StdEncoding.EncodeToString(xmlbuff.Bytes())
     postResponse := POSTResponse{relayState, samlMessage, authRequest.AssertionConsumerServiceURL}
     gen.template.Execute(writer, postResponse)
 }

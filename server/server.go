@@ -23,8 +23,6 @@ type idp struct {
 }
 
 func (idp *idp) Start() error {
-    xmlsig.Initialize()
-    defer xmlsig.Terminate()
     return idp.server.ListenAndServeTLS(idp.certificate, idp.key)
 }
 
@@ -72,7 +70,7 @@ func New() (IDP, error) {
     }
     cas := x509.NewCertPool()
     cas.AppendCertsFromPEM(certs)
-    tlsConfig := &tls.Config{ClientAuth:tls.RequireAndVerifyClientCert, RootCAs:cas}
+    tlsConfig := &tls.Config{ClientAuth:tls.RequireAnyClientCert, RootCAs:cas}
     // Start the server
     return &idp{&http.Server{TLSConfig:tlsConfig, Addr:config.Address}, config.Certificate, config.Key }, nil
 }
