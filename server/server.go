@@ -10,7 +10,8 @@ import ("net/http"
     "github.com/amdonov/lite-idp/authentication"
     "github.com/amdonov/lite-idp/protocol"
     "github.com/amdonov/lite-idp/handler"
-    "log")
+    "log"
+    "github.com/amdonov/lite-idp/config")
 
 type IDP interface {
     Start() error
@@ -28,7 +29,7 @@ func (idp *idp) Start() error {
 
 func New() (IDP, error) {
     // Load configuration data
-    config, err := loadConfiguration()
+    config, err := config.LoadConfiguration()
     if err!=nil {
         return nil, err
     }
@@ -63,6 +64,11 @@ func New() (IDP, error) {
     artHandler := handler.NewArtifactHandler(client, signer, config.EntityId)
     http.Handle(config.Services.ArtifactResolution, artHandler)
     http.Handle(config.Services.AttributeQuery, queryHandler)
+    metadataHandler, err := handler.NewMetadataHandler(config)
+    if err!=nil {
+        return nil, err
+    }
+    http.Handle(config.Services.Metadata, metadataHandler)
     // Set up CAs to verify client certificates
     certs, err := ioutil.ReadFile(config.Authorities)
     if err!=nil {
@@ -70,7 +76,7 @@ func New() (IDP, error) {
     }
     cas := x509.NewCertPool()
     cas.AppendCertsFromPEM(certs)
-    tlsConfig := &tls.Config{ClientAuth:tls.RequireAnyClientCert, RootCAs:cas}
+    tlsConfig := &tls.Config{ClientAuth:tls.RequireAndVerifyClientCert, RootCAs:cas}
     // Start the server
     return &idp{&http.Server{TLSConfig:tlsConfig, Addr:config.Address}, config.Certificate, config.Key }, nil
 }

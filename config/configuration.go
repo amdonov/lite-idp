@@ -1,4 +1,4 @@
-package server
+package config
 import ("flag"
     "encoding/json"
     "os"
@@ -10,7 +10,7 @@ func init() {
     flag.StringVar(&configFile, "config", "config.json", "path to configuration file")
 }
 
-func loadConfiguration() (*Configuration, error) {
+func LoadConfiguration() (*Configuration, error) {
     file, err := os.Open(configFile)
     if err!=nil {
         return nil, err
@@ -51,6 +51,7 @@ func loadConfiguration() (*Configuration, error) {
 type Configuration struct {
     EntityId string
     Address string
+    BaseURL string
     Certificate string
     Key string
     Authorities string
@@ -76,4 +77,5 @@ type Services struct {
     Authentication string
     ArtifactResolution string
     AttributeQuery string
+    Metadata string
 }
