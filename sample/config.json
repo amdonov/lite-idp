@@ -1,0 +1,23 @@
+{
+    "EntityId": "https://idp.example.com/lite-idp/",
+	"BaseURL": "https://idp.example.com",
+    "Address": ":443",
+    "Certificate": "server.crt",
+    "Key": "server.pem",
+    "Authorities": "ca.crt",
+    "Log": "",
+    "Redis": {
+        "Address": "sp.example.com:6379"
+    },
+    "Services": {
+        "Authentication": "/SAML2/Redirect/SSO",
+        "ArtifactResolution": "/SAML2/SOAP/ArtifactResolution",
+        "AttributeQuery": "/SAML2/SOAP/AttributeQuery",
+		"Metadata": "/Metadata"
+    },
+    "AttributeProviders": {
+        "JsonStore": {
+            "File": "users.json"
+        }
+    }
+}
