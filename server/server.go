@@ -2,8 +2,6 @@ package server
 import ("net/http"
     "github.com/amdonov/xmlsig"
     "crypto/tls"
-    "crypto/x509"
-    "io/ioutil"
     "os"
     "gopkg.in/redis.v2"
     "github.com/amdonov/lite-idp/attributes"
@@ -69,18 +67,7 @@ func New() (IDP, error) {
         return nil, err
     }
     http.Handle(config.Services.Metadata, metadataHandler)
-    // Set up CAs to verify client certificates
-    log.Printf("Loading trusted certificate authorities from %s.\n",config.Authorities)
-    certs, err := ioutil.ReadFile(config.Authorities)
-    if err!=nil {
-        return nil, err
-    }
-    cas := x509.NewCertPool()
-    ok:=cas.AppendCertsFromPEM(certs)
-    if !ok {
-        log.Println("Failed to load certificate authorities.")
-    }
-    tlsConfig := &tls.Config{ClientAuth:tls.RequireAnyClientCert, RootCAs:cas}
+    tlsConfig := &tls.Config{ClientAuth:tls.RequireAndVerifyClientCert}
     // Start the server
     return &idp{&http.Server{TLSConfig:tlsConfig, Addr:config.Address}, config.Certificate, config.Key }, nil
 }

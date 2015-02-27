@@ -42,7 +42,6 @@ func LoadConfiguration() (*Configuration, error) {
         *path = absPath
     }
     resolvePath(&config.AttributeProviders.JsonStore.File)
-    resolvePath(&config.Authorities)
     resolvePath(&config.Certificate)
     resolvePath(&config.Key)
     return &config, nil
@@ -54,7 +53,6 @@ type Configuration struct {
     BaseURL string
     Certificate string
     Key string
-    Authorities string
     Log string
     Redis Redis
     Services Services
