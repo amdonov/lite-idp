@@ -42,8 +42,8 @@ func getArtifact(entityId string) string {
     artifact := make([]byte, 44)
     // Use SAML 2
     artifact[1] = byte(4)
-    // Index 2
-    artifact[3] = byte(2)
+    // Index 1
+    artifact[3] = byte(1)
     // Hash of entity ID
     source := sha1.Sum([]byte(entityId))
     for i := 4; i < 24; i++ {
