@@ -70,13 +70,17 @@ func New() (IDP, error) {
     }
     http.Handle(config.Services.Metadata, metadataHandler)
     // Set up CAs to verify client certificates
+    log.Printf("Loading trusted certificate authorities from %s.\n",config.Authorities)
     certs, err := ioutil.ReadFile(config.Authorities)
     if err!=nil {
         return nil, err
     }
     cas := x509.NewCertPool()
-    cas.AppendCertsFromPEM(certs)
-    tlsConfig := &tls.Config{ClientAuth:tls.RequireAndVerifyClientCert, RootCAs:cas}
+    ok:=cas.AppendCertsFromPEM(certs)
+    if !ok {
+        log.Println("Failed to load certificate authorities.")
+    }
+    tlsConfig := &tls.Config{ClientAuth:tls.RequireAnyClientCert, RootCAs:cas}
     // Start the server
     return &idp{&http.Server{TLSConfig:tlsConfig, Addr:config.Address}, config.Certificate, config.Key }, nil
 }
