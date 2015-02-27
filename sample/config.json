@@ -1,7 +1,7 @@
 {
     "EntityId": "https://idp.example.com/lite-idp/",
 	"BaseURL": "https://idp.example.com",
-    "Address": ":443",
+    "Address": ":8080",
     "Certificate": "server.crt",
     "Key": "server.pem",
     "Log": "",
