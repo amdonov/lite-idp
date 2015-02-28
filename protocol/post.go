@@ -57,7 +57,7 @@ response *Response, authRequest *AuthnRequest, relayState string) {
     response.Assertion.Signature = signature
     var xmlbuff bytes.Buffer
     memWriter := bufio.NewWriter(&xmlbuff)
-    writer.Write([]byte(xml.Header))
+    memWriter.Write([]byte(xml.Header))
     encoder := xml.NewEncoder(memWriter)
     encoder.Encode(response)
     memWriter.Flush()
