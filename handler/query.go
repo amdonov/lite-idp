@@ -67,8 +67,8 @@ func (handler *queryHandler) ServeHTTP(writer http.ResponseWriter, request *http
         return
     }
     a.Signature = signature
-    
 
+    writer.Write([]byte(xml.Header))
     encoder := xml.NewEncoder(writer)
     encoder.Encode(attrResp)
     encoder.Flush()

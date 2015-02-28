@@ -45,6 +45,7 @@ func (handler *artifactHandler) ServeHTTP(writer http.ResponseWriter, request *h
         fmt.Println(err)
     }
     response.Assertion.Signature = signature
+    writer.Write([]byte(xml.Header))
     encoder := xml.NewEncoder(writer)
     encoder.Encode(artResponseEnv)
     encoder.Flush()
