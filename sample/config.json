@@ -6,7 +6,7 @@
     "Key": "server.pem",
     "Log": "",
     "Redis": {
-        "Address": "sp.example.com:6379"
+        "Address": "redis:6379"
     },
     "Services": {
         "Authentication": "/SAML2/Redirect/SSO",
