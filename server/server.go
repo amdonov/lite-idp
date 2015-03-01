@@ -56,7 +56,8 @@ func New() (IDP, error) {
     marshallers["urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Artifact"] = protocol.NewArtifactResponseMarshaller(store)
     marshallers["urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"] = protocol.NewPOSTResponseMarshaller(signer)
     generator := protocol.NewDefaultGenerator(config.EntityId)
-    authHandler := handler.NewAuthenticationHandler(requestParser, authenticator, retriever, generator, marshallers)
+    authHandler := handler.NewAuthenticationHandler(requestParser, authenticator, retriever, generator,
+    marshallers, store)
     http.Handle(config.Services.Authentication, authHandler)
     queryHandler := handler.NewQueryHandler(signer, retriever, config.EntityId)
     artHandler := handler.NewArtifactHandler(store, signer, config.EntityId)
