@@ -4,16 +4,14 @@ import ("crypto/sha1"
     "encoding/base64"
     "net/http"
     "net/url"
-    "gopkg.in/redis.v2"
-    "time"
-    "encoding/json")
+    "github.com/amdonov/lite-idp/store")
 
-func NewArtifactResponseMarshaller(client *redis.Client) ResponseMarshaller {
-    return &artifactResponseMarshaller{client}
+func NewArtifactResponseMarshaller(store store.Storer) ResponseMarshaller {
+    return &artifactResponseMarshaller{store}
 }
 
 type artifactResponseMarshaller struct {
-    client *redis.Client
+    store store.Storer
 }
 
 func (gen *artifactResponseMarshaller) Marshal(writer http.ResponseWriter, request *http.Request, response *Response, authRequest *AuthnRequest, relayState string) {
@@ -24,9 +22,8 @@ func (gen *artifactResponseMarshaller) Marshal(writer http.ResponseWriter, reque
     parameters := url.Values{}
     // Save the response to Redis
     artifact := getArtifact(response.Issuer.Value)
-    jsonResp, _ := json.Marshal(response)
-    dur, _ := time.ParseDuration("5m")
-    gen.client.SetEx(artifact, dur, string(jsonResp))
+    // Store the artifact for 5 minutes
+    gen.store.Store(artifact, response, 300)
     parameters.Add("SAMLart", artifact)
     parameters.Add("RelayState", relayState)
     target.RawQuery = parameters.Encode()

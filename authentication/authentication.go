@@ -17,12 +17,16 @@ type pkiAuthenticator struct {
 
 }
 
-func (_ *pkiAuthenticator) Authenticate(request *http.Request) (*AuthenticatedUser, error) {
+func GetIP(request *http.Request) net.IP {
     addr := request.RemoteAddr
     if strings.Contains(addr, ":") {
         addr = strings.Split(addr, ":")[0]
     }
-    ip := net.ParseIP(addr)
+    return net.ParseIP(addr)
+}
+
+func (_ *pkiAuthenticator) Authenticate(request *http.Request) (*AuthenticatedUser, error) {
+    ip := GetIP(request)
     names := request.TLS.PeerCertificates[0].Subject.Names
     return &AuthenticatedUser{getDN(names),
         "urn:oasis:names:tc:SAML:1.1:nameid-format:X509SubjectName",

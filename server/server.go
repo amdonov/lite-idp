@@ -3,13 +3,13 @@ import ("net/http"
     "github.com/amdonov/xmlsig"
     "crypto/tls"
     "os"
-    "gopkg.in/redis.v2"
     "github.com/amdonov/lite-idp/attributes"
     "github.com/amdonov/lite-idp/authentication"
     "github.com/amdonov/lite-idp/protocol"
     "github.com/amdonov/lite-idp/handler"
     "log"
-    "github.com/amdonov/lite-idp/config")
+    "github.com/amdonov/lite-idp/config"
+    "github.com/amdonov/lite-idp/store")
 
 type IDP interface {
     Start() error
@@ -31,9 +31,9 @@ func New() (IDP, error) {
     if err!=nil {
         return nil, err
     }
-    // Connect to Redis
-    client := redis.NewTCPClient(&redis.Options{
-        Addr: config.Redis.Address})
+    // Create a session store
+    store := store.New(config.Redis.Address)
+
     // Configure the XML signer
     signer, err := getSigner(config.Certificate, config.Key)
     if err!=nil {
@@ -53,13 +53,13 @@ func New() (IDP, error) {
     authenticator := authentication.NewPKIAuthenticator()
     requestParser := protocol.NewRedirectRequestParser()
     marshallers := make(map[string]protocol.ResponseMarshaller)
-    marshallers["urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Artifact"] = protocol.NewArtifactResponseMarshaller(client)
+    marshallers["urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Artifact"] = protocol.NewArtifactResponseMarshaller(store)
     marshallers["urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"] = protocol.NewPOSTResponseMarshaller(signer)
     generator := protocol.NewDefaultGenerator(config.EntityId)
     authHandler := handler.NewAuthenticationHandler(requestParser, authenticator, retriever, generator, marshallers)
     http.Handle(config.Services.Authentication, authHandler)
     queryHandler := handler.NewQueryHandler(signer, retriever, config.EntityId)
-    artHandler := handler.NewArtifactHandler(client, signer, config.EntityId)
+    artHandler := handler.NewArtifactHandler(store, signer, config.EntityId)
     http.Handle(config.Services.ArtifactResolution, artHandler)
     http.Handle(config.Services.AttributeQuery, queryHandler)
     metadataHandler, err := handler.NewMetadataHandler(config)

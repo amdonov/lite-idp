@@ -1,21 +1,20 @@
 package handler
-import ("gopkg.in/redis.v2"
-    "github.com/amdonov/xmlsig"
+import ("github.com/amdonov/xmlsig"
     "net/http"
     "encoding/xml"
     "github.com/amdonov/lite-idp/protocol"
-    "encoding/json"
     "github.com/satori/go.uuid"
     "time"
     "github.com/amdonov/lite-idp/saml"
-    "fmt")
+    "fmt"
+    "github.com/amdonov/lite-idp/store")
 
-func NewArtifactHandler(store *redis.Client, signer xmlsig.Signer, entityId string) http.Handler {
+func NewArtifactHandler(store store.Storer, signer xmlsig.Signer, entityId string) http.Handler {
     return &artifactHandler{store, signer, entityId}
 }
 
 type artifactHandler struct {
-    store *redis.Client
+    store store.Storer
     signer xmlsig.Signer
     entityId string
 }
@@ -25,10 +24,8 @@ func (handler *artifactHandler) ServeHTTP(writer http.ResponseWriter, request *h
     var resolveEnv protocol.ArtifactResolveEnvelope
     decoder.Decode(&resolveEnv)
     artifact := resolveEnv.Body.ArtifactResolve.Artifact
-    // Fetch the authentication response from Redis
-    jsonResponse := handler.store.Get(artifact)
     var response protocol.Response
-    err := json.Unmarshal([]byte(jsonResponse.Val()), &response)
+    handler.store.Retrieve(artifact, &response)
     artResponseEnv := protocol.ArtifactResponseEnvelope{}
     artResponse := &artResponseEnv.Body.ArtifactResponse
     artResponse.ID = uuid.NewV4().String()
