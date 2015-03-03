@@ -2,22 +2,23 @@ package authentication
 import ("net"
     "net/http"
     "strings"
-    "crypto/x509/pkix"
-    "bytes")
+    "github.com/amdonov/lite-idp/protocol"
+    "github.com/amdonov/lite-idp/store"
+    "log"
+    "github.com/satori/go.uuid")
+
+type AuthFunc func(*protocol.AuthnRequest, string, *protocol.AuthenticatedUser, http.ResponseWriter, *http.Request)
 
 type Authenticator interface {
-    Authenticate(*http.Request) (*AuthenticatedUser, error)
+    Authenticate(*protocol.AuthnRequest, string, http.ResponseWriter, *http.Request)
 }
 
-func NewPKIAuthenticator() Authenticator {
-    return &pkiAuthenticator{}
+type HandlerAuthenticator interface {
+    http.Handler
+    Authenticator
 }
 
-type pkiAuthenticator struct {
-
-}
-
-func GetIP(request *http.Request) net.IP {
+func getIP(request *http.Request) net.IP {
     addr := request.RemoteAddr
     if strings.Contains(addr, ":") {
         addr = strings.Split(addr, ":")[0]
@@ -25,51 +26,72 @@ func GetIP(request *http.Request) net.IP {
     return net.ParseIP(addr)
 }
 
-func (_ *pkiAuthenticator) Authenticate(request *http.Request) (*AuthenticatedUser, error) {
-    ip := GetIP(request)
-    names := request.TLS.PeerCertificates[0].Subject.Names
-    return &AuthenticatedUser{getDN(names),
-        "urn:oasis:names:tc:SAML:1.1:nameid-format:X509SubjectName",
-        "urn:oasis:names:tc:SAML:2.0:ac:classes:X509", ip}, nil
-}
-
-type AuthenticatedUser struct {
-    Name string
-    Format string
-    Context string
-    IP net.IP
-}
-
-// Quick attempt at RFC 2253
-func getDN(names []pkix.AttributeTypeAndValue) string {
-    var buffer bytes.Buffer
-    // Reverse the order
-    for i := len(names); i>0; i-- {
-        t := names[i-1].Type
-        if len(t) == 4 && t[0] == 2 && t[1] == 5 && t[2] == 4 {
-            switch t[3] {
-                case 3:
-                buffer.WriteString("CN")
-                case 6:
-                buffer.WriteString("C")
-                case 7:
-                buffer.WriteString("L")
-                case 8:
-                buffer.WriteString("ST")
-                case 9:
-                buffer.WriteString("STREET")
-                case 10:
-                buffer.WriteString("O")
-                case 11:
-                buffer.WriteString("OU")
-            }
-        }
-        buffer.WriteString("=")
-        val, _ := names[i-1].Value.(string)
-        buffer.WriteString(val)
-        if i>1 {
-            buffer.WriteString(", ")
-        }
+func retrieveUserFromSession(request *http.Request, store store.Storer) *protocol.AuthenticatedUser {
+    // Does this user have a session?
+    cookie, err := request.Cookie("lidp-user")
+    if err!=nil {
+        return nil
     }
-    return buffer.String()
+    // Read the user information from Redis
+    var tmpUser protocol.AuthenticatedUser
+    err = store.Retrieve(cookie.Value, &tmpUser)
+    if err!=nil {
+        return nil
+    }
+    user := &tmpUser
+    log.Printf("Using exising session for %s\n", user.Name)
+    // Make sure the IP matches
+    if !getIP(request).Equal(user.IP) {
+        log.Println("Warning - Existing session associated with a different IP address.")
+        // Force them to authenticate again
+        return nil
+    }
+    return user
+}
+
+func storeUserInSession(writer http.ResponseWriter, store store.Storer, user *protocol.AuthenticatedUser) {
+    // Create a session and save user info
+    sessionID := uuid.NewV4().String()
+
+    // Set a cookie for the user session
+    c := &http.Cookie{Name:"lidp-user", Value:sessionID, Path:"/", HttpOnly:true, Secure:true}
+    http.SetCookie(writer, c)
+
+    // Save information for 8 hours
+    store.Store(sessionID, user, 28800)
+    log.Printf("Creating a new session for %s\n", user.Name)
+
+}
+
+type RequestState struct {
+    AuthnRequest *protocol.AuthnRequest
+    RelayState string
+}
+
+func storeRequestState(writer http.ResponseWriter, store store.Storer, authnRequest *protocol.AuthnRequest, relayState string) {
+    // Save the request and relaystate for 5 minutes
+    sessionID := uuid.NewV4().String()
+    state := RequestState{authnRequest, relayState}
+    store.Store(sessionID, state, 300)
+    // Set a cookie for the request state
+    c := &http.Cookie{Name:"lidp-rs", Value:sessionID, Path:"/", HttpOnly:true, Secure:true}
+    http.SetCookie(writer, c)
+}
+
+func retrieveRequestState(request *http.Request, store store.Storer) (*protocol.AuthnRequest, string) {
+    // Does this user have a saved request state
+    cookie, err := request.Cookie("lidp-rs")
+    if err!=nil {
+        return nil, ""
+    }
+    // Read the user information from Redis
+    var rs RequestState
+    err = store.Retrieve(cookie.Value, &rs)
+    if err!=nil {
+        log.Println(err)
+        return nil, ""
+    }
+    log.Printf("Should have a good result - %s", rs.RelayState)
+    return rs.AuthnRequest, rs.RelayState
+
 }

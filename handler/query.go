@@ -3,7 +3,6 @@ import ("github.com/amdonov/xmlsig"
     "github.com/amdonov/lite-idp/attributes"
     "net/http"
     "encoding/xml"
-    "github.com/amdonov/lite-idp/authentication"
     "github.com/satori/go.uuid"
     "time"
     "github.com/amdonov/lite-idp/saml"
@@ -30,7 +29,7 @@ func (handler *queryHandler) ServeHTTP(writer http.ResponseWriter, request *http
     query := attributeEnv.Body.Query
     name := query.Subject.NameID.Value
     format := query.Subject.NameID.Format
-    user := &authentication.AuthenticatedUser{Name:name, Format:format}
+    user := &protocol.AuthenticatedUser{Name:name, Format:format}
     atts, err := handler.retriever.Retrieve(user)
     if err!=nil {
         http.Error(writer, err.Error(), 500)
@@ -60,8 +59,8 @@ func (handler *queryHandler) ServeHTTP(writer http.ResponseWriter, request *http
     a.Conditions.AudienceRestriction = &saml.AudienceRestriction{Audience:query.Issuer}
     resp.Status = protocol.NewStatus(true)
     resp.Assertion = a
-    
-    signature,err:=handler.signer.Sign(a)
+
+    signature, err := handler.signer.Sign(a)
     if (err!=nil) {
         http.Error(writer, err.Error(), 500)
         return

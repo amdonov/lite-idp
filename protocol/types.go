@@ -2,6 +2,14 @@ package protocol
 import "encoding/xml"
 import "time"
 import "github.com/amdonov/lite-idp/saml"
+import "net"
+
+type AuthenticatedUser struct {
+    Name string
+    Format string
+    Context string
+    IP net.IP
+}
 
 type AuthnRequest struct {
     RequestAbstractType

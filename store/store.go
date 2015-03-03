@@ -1,7 +1,7 @@
 package store
-import "github.com/garyburd/redigo/redis"
-import "time"
-import "encoding/json"
+import ("github.com/garyburd/redigo/redis"
+    "time"
+    "encoding/json")
 
 type Storer interface {
     Store(key, value interface{}, time int) error

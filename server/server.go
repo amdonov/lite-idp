@@ -50,14 +50,15 @@ func New() (IDP, error) {
     if err!=nil {
         return nil, err
     }
-    authenticator := authentication.NewPKIAuthenticator()
     requestParser := protocol.NewRedirectRequestParser()
     marshallers := make(map[string]protocol.ResponseMarshaller)
     marshallers["urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Artifact"] = protocol.NewArtifactResponseMarshaller(store)
     marshallers["urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"] = protocol.NewPOSTResponseMarshaller(signer)
     generator := protocol.NewDefaultGenerator(config.EntityId)
-    authHandler := handler.NewAuthenticationHandler(requestParser, authenticator, retriever, generator,
-    marshallers, store)
+    responder := &authnresponder{retriever, generator, marshallers}
+    passwordAuth := authentication.NewPasswordAuthenticator(responder.completeAuth, store, config.Authenticator.Fallback.Form)
+    pkiAuth := authentication.NewPKIAuthenticator(responder.completeAuth, store, passwordAuth)
+    authHandler := handler.NewAuthenticationHandler(requestParser, pkiAuth)
     http.Handle(config.Services.Authentication, authHandler)
     queryHandler := handler.NewQueryHandler(signer, retriever, config.EntityId)
     artHandler := handler.NewArtifactHandler(store, signer, config.EntityId)
@@ -68,7 +69,10 @@ func New() (IDP, error) {
         return nil, err
     }
     http.Handle(config.Services.Metadata, metadataHandler)
-    tlsConfig := &tls.Config{ClientAuth:tls.RequireAndVerifyClientCert}
+    form:=config.Authenticator.Fallback.Form
+    http.Handle(form.Context, http.StripPrefix(form.Context, http.FileServer(http.Dir(form.Directory))))
+    http.Handle(form.Action, passwordAuth)
+    tlsConfig := &tls.Config{ClientAuth:tls.RequestClientCert}
     // Start the server
     return &idp{&http.Server{TLSConfig:tlsConfig, Addr:config.Address}, config.Certificate, config.Key }, nil
 }

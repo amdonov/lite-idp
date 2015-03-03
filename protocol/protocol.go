@@ -2,8 +2,7 @@ package protocol
 import ("net/http"
     "github.com/satori/go.uuid"
     "time"
-    "github.com/amdonov/lite-idp/saml"
-    "github.com/amdonov/lite-idp/authentication")
+    "github.com/amdonov/lite-idp/saml")
 
 type RequestParser interface {
     Parse(request *http.Request) (*AuthnRequest, string, error)
@@ -25,7 +24,7 @@ type ResponseMarshaller interface {
 }
 
 type ResponseGenerator interface {
-    Generate(*authentication.AuthenticatedUser, *AuthnRequest, map[string][]string) *Response
+    Generate(*AuthenticatedUser, *AuthnRequest, map[string][]string) *Response
 }
 
 func NewDefaultGenerator(entityId string) ResponseGenerator {
@@ -36,7 +35,7 @@ type defaultGenerator struct {
     entityId string
 }
 
-func (generator *defaultGenerator) Generate(user *authentication.AuthenticatedUser, authnRequest *AuthnRequest, attributes map[string][]string) *Response {
+func (generator *defaultGenerator) Generate(user *AuthenticatedUser, authnRequest *AuthnRequest, attributes map[string][]string) *Response {
     s := &Response{}
     s.Version = "2.0"
     s.ID = uuid.NewV4().String()
