@@ -21,7 +21,7 @@
         "Directory": "authentication-form",
         "Form": "form.html",
         "Error": "error.html",
-        "Context": "/form",
+        "Context": "/form/",
         "Action": "/authenticate"
       }
     }
