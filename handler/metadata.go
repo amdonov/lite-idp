@@ -1,27 +1,30 @@
 package handler
-import ("net/http"
-    "text/template"
-    "github.com/amdonov/lite-idp/config"
-    "io/ioutil"
-    "encoding/pem"
-    "encoding/base64")
+
+import (
+	"encoding/base64"
+	"encoding/pem"
+	"github.com/amdonov/lite-idp/config"
+	"io/ioutil"
+	"net/http"
+	"text/template"
+)
 
 type metadataHandler struct {
-    template *template.Template
-    Configuration *config.Configuration
-    Certificate string
+	template      *template.Template
+	Configuration *config.Configuration
+	Certificate   string
 }
 
 func NewMetadataHandler(config *config.Configuration) (http.Handler, error) {
-    handler := &metadataHandler{Configuration:config}
-    data, err := ioutil.ReadFile(config.Certificate)
-    if err!=nil {
-        return nil, err
-    }
-    cert, _ := pem.Decode(data)
-    handler.Certificate = base64.StdEncoding.EncodeToString(cert.Bytes)
-    handler.template = template.New("metadata")
-    handler.template.Parse(`<?xml version="1.0" encoding="UTF-8"?>
+	handler := &metadataHandler{Configuration: config}
+	data, err := ioutil.ReadFile(config.Certificate)
+	if err != nil {
+		return nil, err
+	}
+	cert, _ := pem.Decode(data)
+	handler.Certificate = base64.StdEncoding.EncodeToString(cert.Bytes)
+	handler.template = template.New("metadata")
+	handler.template.Parse(`<?xml version="1.0" encoding="UTF-8"?>
 <EntityDescriptor xmlns="urn:oasis:names:tc:SAML:2.0:metadata" xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
                   entityID="{{ .Configuration.EntityId }}">
     <IDPSSODescriptor protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol">
@@ -55,9 +58,8 @@ func NewMetadataHandler(config *config.Configuration) (http.Handler, error) {
         <NameIDFormat>urn:oasis:names:tc:SAML:1.1:nameid-format:X509SubjectName</NameIDFormat>
     </AttributeAuthorityDescriptor>
 </EntityDescriptor>`)
-    return handler, nil
+	return handler, nil
 }
 func (handler *metadataHandler) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
-    handler.template.Execute(writer, handler)
+	handler.template.Execute(writer, handler)
 }
-
