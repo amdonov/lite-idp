@@ -25,15 +25,18 @@ func (handler *queryHandler) ServeHTTP(writer http.ResponseWriter, request *http
 	decoder := xml.NewDecoder(request.Body)
 	var attributeEnv attributes.AttributeQueryEnv
 	err := decoder.Decode(&attributeEnv)
+	// TODO determine if this is the appropriate error response
 	if err != nil {
 		http.Error(writer, err.Error(), 500)
 		return
 	}
+	// TODO validate attributeEnv before proceeding
 	query := attributeEnv.Body.Query
 	name := query.Subject.NameID.Value
 	format := query.Subject.NameID.Format
 	user := &protocol.AuthenticatedUser{Name: name, Format: format}
 	atts, err := handler.retriever.Retrieve(user)
+	// TODO determine if this is the appropriate error response
 	if err != nil {
 		http.Error(writer, err.Error(), 500)
 		return
@@ -64,14 +67,16 @@ func (handler *queryHandler) ServeHTTP(writer http.ResponseWriter, request *http
 	resp.Assertion = a
 
 	signature, err := handler.signer.Sign(a)
+	// TODO determine if this is the appropriate error response
 	if err != nil {
 		http.Error(writer, err.Error(), 500)
 		return
 	}
 	a.Signature = signature
-
-	writer.Write([]byte(xml.Header))
+	// TODO handle these errors. Probably can't do anything besides log, as we've already started to write the
+	// response.
+	err = writer.Write([]byte(xml.Header))
 	encoder := xml.NewEncoder(writer)
-	encoder.Encode(attrResp)
-	encoder.Flush()
+	err = encoder.Encode(attrResp)
+	err = encoder.Flush()
 }

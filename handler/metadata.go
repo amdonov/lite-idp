@@ -5,6 +5,7 @@ import (
 	"encoding/pem"
 	"github.com/amdonov/lite-idp/config"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"text/template"
 )
@@ -61,5 +62,8 @@ func NewMetadataHandler(config *config.Configuration) (http.Handler, error) {
 	return handler, nil
 }
 func (handler *metadataHandler) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
-	handler.template.Execute(writer, handler)
+	err := handler.template.Execute(writer, handler)
+	if err != nil {
+		log.Printf("Failed to render metadata, %s\n", err.Error())
+	}
 }

@@ -19,7 +19,11 @@ type passwordAuthenticator struct {
 }
 
 func (auth *passwordAuthenticator) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
-	request.ParseForm()
+	err := request.ParseForm()
+	if err != nil {
+		http.Error(writer, err.Error(), 500)
+		return
+	}
 	uid := request.Form.Get("uid")
 	pwd := request.Form.Get("pwd")
 	if "jdoe" != uid && "secret" != pwd {
@@ -48,8 +52,11 @@ func (auth *passwordAuthenticator) Authenticate(authnRequest *protocol.AuthnRequ
 		auth.callback(authnRequest, relayState, user, writer, request)
 		return
 	}
-	storeRequestState(writer, auth.store, authnRequest, relayState)
+	err := storeRequestState(writer, auth.store, authnRequest, relayState)
+	if err != nil {
+		http.Error(writer, err.Error(), 500)
+		return
+	}
 	// Present the user with the login form
 	http.ServeFile(writer, request, auth.form)
-	return
 }

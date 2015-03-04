@@ -5,6 +5,9 @@ func NewIssuer(issuer string) *Issuer {
 }
 
 func NewAttributeStatement(attributes map[string][]string) *AttributeStatement {
+	if attributes == nil {
+		return nil
+	}
 	stmt := &AttributeStatement{}
 	for key, values := range attributes {
 		att := Attribute{}

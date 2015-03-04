@@ -33,7 +33,7 @@ func LoadConfiguration() (*Configuration, error) {
 	}
 	configDir := filepath.Dir(configAbs)
 	resolvePath := func(path *string) {
-		// If the path is absolute, leave itt alone
+		// If the path is absolute, leave it alone
 		if filepath.IsAbs(*path) {
 			return
 		}

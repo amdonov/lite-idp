@@ -52,6 +52,7 @@ func retrieveUserFromSession(request *http.Request, store store.Storer) *protoco
 	return user
 }
 
+// No need to return an error. We can't do anything. They'll just have to sign in again
 func storeUserInSession(writer http.ResponseWriter, store store.Storer, user *protocol.AuthenticatedUser) {
 	// Create a session and save user info
 	sessionID := uuid.NewV4().String()
@@ -60,10 +61,12 @@ func storeUserInSession(writer http.ResponseWriter, store store.Storer, user *pr
 	c := &http.Cookie{Name: "lidp-user", Value: sessionID, Path: "/", HttpOnly: true, Secure: true}
 	http.SetCookie(writer, c)
 
-	// Save information for 8 hours
-	store.Store(sessionID, user, 28800)
 	log.Printf("Creating a new session for %s\n", user.Name)
-
+	// Save information for 8 hours
+	err := store.Store(sessionID, user, 28800)
+	if err != nil {
+		log.Println("Failed to save session for user.")
+	}
 }
 
 type RequestState struct {
@@ -71,14 +74,18 @@ type RequestState struct {
 	RelayState   string
 }
 
-func storeRequestState(writer http.ResponseWriter, store store.Storer, authnRequest *protocol.AuthnRequest, relayState string) {
+func storeRequestState(writer http.ResponseWriter, store store.Storer, authnRequest *protocol.AuthnRequest, relayState string) error {
 	// Save the request and relaystate for 5 minutes
 	sessionID := uuid.NewV4().String()
 	state := RequestState{authnRequest, relayState}
-	store.Store(sessionID, state, 300)
+	err := store.Store(sessionID, state, 300)
+	if err != nil {
+		return err
+	}
 	// Set a cookie for the request state
 	c := &http.Cookie{Name: "lidp-rs", Value: sessionID, Path: "/", HttpOnly: true, Secure: true}
 	http.SetCookie(writer, c)
+	return err
 }
 
 func retrieveRequestState(request *http.Request, store store.Storer) (*protocol.AuthnRequest, string) {

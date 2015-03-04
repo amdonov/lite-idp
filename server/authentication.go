@@ -3,6 +3,7 @@ package server
 import (
 	"github.com/amdonov/lite-idp/attributes"
 	"github.com/amdonov/lite-idp/protocol"
+	"log"
 	"net/http"
 )
 
@@ -17,9 +18,9 @@ func (responder *authnresponder) completeAuth(authnRequest *protocol.AuthnReques
 	writer http.ResponseWriter, request *http.Request) {
 	// Look up any attributes
 	atts, err := responder.retriever.Retrieve(user)
+	// Proceed even if we didn't find attributes
 	if err != nil {
-		http.Error(writer, err.Error(), 500)
-		return
+		log.Println(err.Error())
 	}
 
 	// Create a SAML Response
