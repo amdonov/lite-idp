@@ -35,10 +35,9 @@ func (auth *passwordAuthenticator) ServeHTTP(writer http.ResponseWriter, request
 		http.Error(writer, "Failed to restore your request. Perhaps authentication took too long or you are not accepting cookies.", 500)
 		return
 	}
-	// TODO these values aren't correct for password authentication
-	user := &protocol.AuthenticatedUser{"CN=John Doe, OU=sample, O=lite idp, L=Charlottesville, ST=Virginia, C=US",
-		"urn:oasis:names:tc:SAML:1.1:nameid-format:X509SubjectName",
-		"urn:oasis:names:tc:SAML:2.0:ac:classes:X509", getIP(request)}
+	user := &protocol.AuthenticatedUser{uid,
+		"urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified",
+		"urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport", getIP(request)}
 	storeUserInSession(writer, auth.store, user)
 	auth.callback(authnRequest, relayState, user, writer, request)
 }
