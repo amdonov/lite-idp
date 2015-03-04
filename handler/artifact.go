@@ -59,7 +59,7 @@ func (handler *artifactHandler) ServeHTTP(writer http.ResponseWriter, request *h
 	response.Assertion.Signature = signature
 	// TODO handle these errors. Probably can't do anything besides log, as we've already started to write the
 	// response.
-	err = writer.Write([]byte(xml.Header))
+	_, err = writer.Write([]byte(xml.Header))
 	encoder := xml.NewEncoder(writer)
 	err = encoder.Encode(artResponseEnv)
 	err = encoder.Flush()

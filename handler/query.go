@@ -75,7 +75,7 @@ func (handler *queryHandler) ServeHTTP(writer http.ResponseWriter, request *http
 	a.Signature = signature
 	// TODO handle these errors. Probably can't do anything besides log, as we've already started to write the
 	// response.
-	err = writer.Write([]byte(xml.Header))
+	_, err = writer.Write([]byte(xml.Header))
 	encoder := xml.NewEncoder(writer)
 	err = encoder.Encode(attrResp)
 	err = encoder.Flush()
