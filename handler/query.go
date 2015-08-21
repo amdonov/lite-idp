@@ -6,7 +6,6 @@ import (
 	"github.com/amdonov/lite-idp/protocol"
 	"github.com/amdonov/lite-idp/saml"
 	"github.com/amdonov/xmlsig"
-	"github.com/satori/go.uuid"
 	"net/http"
 	"time"
 )
@@ -43,7 +42,7 @@ func (handler *queryHandler) ServeHTTP(writer http.ResponseWriter, request *http
 	}
 	var attrResp attributes.AttributeRespEnv
 	resp := &attrResp.Body.Response
-	resp.ID = uuid.NewV4().String()
+	resp.ID = protocol.NewID()
 	resp.InResponseTo = query.ID
 	resp.Version = "2.0"
 	now := time.Now()
@@ -52,7 +51,7 @@ func (handler *queryHandler) ServeHTTP(writer http.ResponseWriter, request *http
 	a := &saml.Assertion{}
 	a.Issuer = resp.Issuer
 	a.IssueInstant = now
-	a.ID = uuid.NewV4().String()
+	a.ID = protocol.NewID()
 	a.Version = "2.0"
 	a.Subject = &saml.Subject{}
 	a.Subject.NameID = query.Subject.NameID
