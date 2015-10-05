@@ -5,10 +5,11 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/xml"
-	"github.com/amdonov/xmlsig"
 	"log"
 	"net/http"
 	"text/template"
+
+	"github.com/amdonov/xmlsig"
 )
 
 func NewPOSTResponseMarshaller(signer xmlsig.Signer) ResponseMarshaller {
