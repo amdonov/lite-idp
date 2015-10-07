@@ -6,7 +6,6 @@ import (
 	"github.com/amdonov/lite-idp/saml"
 	"github.com/amdonov/lite-idp/store"
 	"github.com/amdonov/xmlsig"
-	"github.com/satori/go.uuid"
 	"net/http"
 	"time"
 )
@@ -41,7 +40,7 @@ func (handler *artifactHandler) ServeHTTP(writer http.ResponseWriter, request *h
 	}
 	artResponseEnv := protocol.ArtifactResponseEnvelope{}
 	artResponse := &artResponseEnv.Body.ArtifactResponse
-	artResponse.ID = uuid.NewV4().String()
+	artResponse.ID = protocol.NewID()
 	now := time.Now()
 	artResponse.IssueInstant = now
 	artResponse.InResponseTo = resolveEnv.Body.ArtifactResolve.ID

@@ -1,14 +1,19 @@
 package protocol
 
 import (
-	"github.com/amdonov/lite-idp/saml"
-	"github.com/satori/go.uuid"
 	"net/http"
 	"time"
+
+	"github.com/amdonov/lite-idp/saml"
+	"github.com/satori/go.uuid"
 )
 
 type RequestParser interface {
 	Parse(request *http.Request) (*AuthnRequest, string, error)
+}
+
+func NewID() string {
+	return "_" + uuid.NewV4().String()
 }
 
 func NewStatus(success bool) *Status {
@@ -41,7 +46,7 @@ type defaultGenerator struct {
 func (generator *defaultGenerator) Generate(user *AuthenticatedUser, authnRequest *AuthnRequest, attributes map[string][]string) *Response {
 	s := &Response{}
 	s.Version = "2.0"
-	s.ID = uuid.NewV4().String()
+	s.ID = NewID()
 	now := time.Now()
 	fiveMinutes, _ := time.ParseDuration("5m")
 	fiveFromNow := now.Add(fiveMinutes)
@@ -50,7 +55,7 @@ func (generator *defaultGenerator) Generate(user *AuthenticatedUser, authnReques
 	s.InResponseTo = authnRequest.ID
 	s.Issuer = saml.NewIssuer(generator.entityId)
 	assertion := &saml.Assertion{}
-	assertion.ID = uuid.NewV4().String()
+	assertion.ID = NewID()
 	assertion.IssueInstant = now
 	assertion.Version = "2.0"
 	assertion.Issuer = s.Issuer

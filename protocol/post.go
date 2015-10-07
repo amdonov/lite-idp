@@ -18,15 +18,14 @@ func NewPOSTResponseMarshaller(signer xmlsig.Signer) ResponseMarshaller {
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
 "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
-<body onload="document.forms[0].submit()">
+<body onload="document.getElementById('samlpost').submit()">
 <noscript>
 <p>
 <strong>Note:</strong> Since your browser does not support JavaScript,
 you must press the Continue button once to proceed.
 </p>
 </noscript>
-<form action="{{ .AssertionConsumerServiceURL }}"
-method="post">
+<form action="{{ .AssertionConsumerServiceURL }}" method="post" id="samlpost">
 <div>
 <input type="hidden" name="RelayState"
 value="{{ .RelayState }}"/>
