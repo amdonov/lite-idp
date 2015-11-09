@@ -50,6 +50,7 @@ func (generator *defaultGenerator) Generate(user *AuthenticatedUser, authnReques
 	now := time.Now()
 	fiveMinutes, _ := time.ParseDuration("5m")
 	fiveFromNow := now.Add(fiveMinutes)
+	fiveBeforeNow := now.Add(-1 * fiveMinutes)
 	s.IssueInstant = now
 	s.Status = NewStatus(true)
 	s.InResponseTo = authnRequest.ID
@@ -76,7 +77,7 @@ func (generator *defaultGenerator) Generate(user *AuthenticatedUser, authnReques
 	assertion.Subject = subject
 	conditions := &saml.Conditions{}
 	conditions.NotOnOrAfter = fiveFromNow
-	conditions.NotBefore = now
+	conditions.NotBefore = fiveBeforeNow
 	audRestriction := &saml.AudienceRestriction{Audience: authnRequest.Issuer}
 	conditions.AudienceRestriction = audRestriction
 	assertion.Conditions = conditions
