@@ -5,10 +5,11 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/xml"
-	"github.com/amdonov/xmlsig"
 	"log"
 	"net/http"
 	"text/template"
+
+	"github.com/amdonov/xmlsig"
 )
 
 func NewPOSTResponseMarshaller(signer xmlsig.Signer) ResponseMarshaller {
@@ -51,7 +52,7 @@ type postResponseMarshaller struct {
 func (gen *postResponseMarshaller) Marshal(writer http.ResponseWriter, request *http.Request,
 	response *Response, authRequest *AuthnRequest, relayState string) {
 	// Don't need to change the response. Go ahead and sign it
-	signature, err := gen.signer.Sign(response.Assertion)
+	signature, err := gen.signer.CreateSignature(response.Assertion)
 	if err != nil {
 		log.Println(err)
 		return

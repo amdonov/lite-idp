@@ -16,9 +16,9 @@ func NewAttributeStatement(attributes map[string][]string) *AttributeStatement {
 		att.NameFormat = "urn:oasis:names:tc:SAML:2.0:attrname-format:basic"
 		for index := range values {
 			val := AttributeValue{Value: values[index]}
-			att.AttributeValues = append(att.AttributeValues, val)
+			att.AttributeValue = append(att.AttributeValue, val)
 		}
-		stmt.Attributes = append(stmt.Attributes, att)
+		stmt.Attribute = append(stmt.Attribute, att)
 	}
 	return stmt
 }

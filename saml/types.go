@@ -2,9 +2,10 @@ package saml
 
 import (
 	"encoding/xml"
-	"github.com/amdonov/xmlsig"
 	"net"
 	"time"
+
+	"github.com/amdonov/xmlsig"
 )
 
 type Subject struct {
@@ -50,16 +51,16 @@ type AttributeValue struct {
 }
 
 type Attribute struct {
-	XMLName         xml.Name `xml:"urn:oasis:names:tc:SAML:2.0:assertion Attribute"`
-	FriendlyName    string   `xml:",attr"`
-	Name            string   `xml:",attr"`
-	NameFormat      string   `xml:",attr"`
-	AttributeValues []AttributeValue
+	XMLName        xml.Name `xml:"urn:oasis:names:tc:SAML:2.0:assertion Attribute"`
+	FriendlyName   string   `xml:",attr"`
+	Name           string   `xml:",attr"`
+	NameFormat     string   `xml:",attr"`
+	AttributeValue []AttributeValue
 }
 
 type AttributeStatement struct {
-	XMLName    xml.Name `xml:"urn:oasis:names:tc:SAML:2.0:assertion AttributeStatement"`
-	Attributes []Attribute
+	XMLName   xml.Name `xml:"urn:oasis:names:tc:SAML:2.0:assertion AttributeStatement"`
+	Attribute []Attribute
 }
 
 type NameID struct {
