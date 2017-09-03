@@ -15,20 +15,21 @@
 package idp
 
 import (
-	"bytes"
 	"crypto/sha1"
 	"encoding/base64"
-	"encoding/gob"
+	"net"
 	"net/http"
 	"net/url"
 	"time"
 
 	"github.com/amdonov/lite-idp/model"
 	"github.com/amdonov/lite-idp/saml"
+	"github.com/golang/protobuf/proto"
 	"github.com/google/uuid"
 )
 
-func (i *IDP) respond(authRequest *model.AuthnRequest, user *saml.AuthenticatedUser, w http.ResponseWriter, r *http.Request) error {
+func (i *IDP) respond(authRequest *model.AuthnRequest, user *model.User,
+	w http.ResponseWriter, r *http.Request) error {
 
 	// Just do artifact for now
 	target, err := url.Parse(authRequest.AssertionConsumerServiceURL)
@@ -37,15 +38,16 @@ func (i *IDP) respond(authRequest *model.AuthnRequest, user *saml.AuthenticatedU
 	}
 	parameters := url.Values{}
 	artifact := getArtifact(i.entityID)
-	// Store the artifact in the cache
-	response := i.makeResponse(authRequest, user)
-	var buffer bytes.Buffer
-	encoder := gob.NewEncoder(&buffer)
-	err = encoder.Encode(response)
+	// Store required data in the cache
+	response := &model.ArtifactResponse{
+		User:    user,
+		Request: authRequest,
+	}
+	data, err := proto.Marshal(response)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
-	i.TempCache.Set(artifact, buffer.Bytes())
+	i.TempCache.Set(artifact, data)
 	parameters.Add("SAMLart", artifact)
 	parameters.Add("RelayState", authRequest.RelayState)
 	target.RawQuery = parameters.Encode()
@@ -55,7 +57,7 @@ func (i *IDP) respond(authRequest *model.AuthnRequest, user *saml.AuthenticatedU
 	return nil
 }
 
-func (i *IDP) makeResponse(authRequest *model.AuthnRequest, user *saml.AuthenticatedUser) *saml.Response {
+func (i *IDP) makeResponse(authRequest *model.AuthnRequest, user *model.User) *saml.Response {
 	now := time.Now()
 	fiveFromNow := now.Add(5 * time.Minute)
 	s := &saml.Response{
@@ -90,7 +92,7 @@ func (i *IDP) makeResponse(authRequest *model.AuthnRequest, user *saml.Authentic
 				SubjectConfirmation: &saml.SubjectConfirmation{
 					Method: "urn:oasis:names:tc:SAML:2.0:cm:bearer",
 					SubjectConfirmationData: &saml.SubjectConfirmationData{
-						Address:      user.IP,
+						Address:      net.ParseIP(user.IP),
 						InResponseTo: authRequest.ID,
 						Recipient:    authRequest.AssertionConsumerServiceURL,
 						NotOnOrAfter: fiveFromNow,
@@ -107,6 +109,7 @@ func (i *IDP) makeResponse(authRequest *model.AuthnRequest, user *saml.Authentic
 					AuthnContextClassRef: user.Context,
 				},
 			},
+			AttributeStatement: user.AttributeStatement(),
 			Conditions: &saml.Conditions{
 				NotOnOrAfter: fiveFromNow,
 				NotBefore:    now,

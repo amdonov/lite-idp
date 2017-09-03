@@ -19,7 +19,6 @@ import (
 	"net/http"
 
 	"github.com/amdonov/lite-idp/model"
-	"github.com/amdonov/lite-idp/saml"
 	"github.com/golang/protobuf/proto"
 	"github.com/spf13/viper"
 	"golang.org/x/crypto/bcrypt"
@@ -29,7 +28,7 @@ type PasswordValidator interface {
 	Validate(user, password string) error
 }
 
-type simpleValiadator struct {
+type simpleValidator struct {
 	users map[string][]byte
 }
 
@@ -38,21 +37,24 @@ type UserPassword struct {
 	Password string
 }
 
-func (sv *simpleValiadator) Validate(user, password string) error {
+func (sv *simpleValidator) Validate(user, password string) error {
 	if pw, ok := sv.users[user]; ok {
 		return bcrypt.CompareHashAndPassword(pw, []byte(password))
 	}
 	return errors.New("user not found")
 }
 
-func NewValidator() PasswordValidator {
+func NewValidator() (PasswordValidator, error) {
 	passwords := []UserPassword{}
-	viper.UnmarshalKey("users", &passwords)
+	err := viper.UnmarshalKey("users", &passwords)
+	if err != nil {
+		return nil, err
+	}
 	users := make(map[string][]byte)
 	for i := range passwords {
 		users[passwords[i].Name] = []byte(passwords[i].Password)
 	}
-	return &simpleValiadator{users}
+	return &simpleValidator{users}, nil
 }
 
 func (i *IDP) DefaultPasswordLoginHandler() http.HandlerFunc {
@@ -78,11 +80,18 @@ func (i *IDP) DefaultPasswordLoginHandler() http.HandlerFunc {
 				return err
 			}
 			// They have provided the right password
-			user := &saml.AuthenticatedUser{
+			user := &model.User{
 				Name:    userName,
 				Format:  "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified",
 				Context: "urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport",
-				IP:      getIP(r)}
+				IP:      getIP(r).String()}
+
+			// Add attributes
+			err = i.setUserAttributes(user)
+			if err != nil {
+				return err
+			}
+
 			return i.respond(req, user, w, r)
 		}()
 		if err != nil {

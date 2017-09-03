@@ -5,7 +5,10 @@ tls-certificate: hack/tls-setup/certs/idp.pem
 users:
  - name: amdonov
    password: '$2a$10$U41uarKrlduOofvJRC724.7V7RRZOciyC4TZ4UAQUtWuPuKVvByR.'
-   properties:
-     surName: Donovan
-     firstName: Aaron
-     email: amdonov@gmail.com
+   attributes:
+     SurName: 
+      - Donovan
+     FirstName: 
+      - Aaron
+     FullName: 
+      - Aaron Donovan

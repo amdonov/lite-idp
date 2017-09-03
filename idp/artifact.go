@@ -15,13 +15,13 @@
 package idp
 
 import (
-	"bytes"
-	"encoding/gob"
 	"encoding/xml"
 	"net/http"
 	"time"
 
+	"github.com/amdonov/lite-idp/model"
 	"github.com/amdonov/lite-idp/saml"
+	"github.com/golang/protobuf/proto"
 )
 
 func (i *IDP) DefaultArtifactResolveHandler() http.HandlerFunc {
@@ -36,19 +36,19 @@ func (i *IDP) DefaultArtifactResolveHandler() http.HandlerFunc {
 		}
 		// TODO validate resolveEnv before proceeding
 		artifact := resolveEnv.Body.ArtifactResolve.Artifact
-		var response saml.Response
 		data, err := i.TempCache.Get(artifact)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		gobDecoder := gob.NewDecoder(bytes.NewReader(data))
-		err = gobDecoder.Decode(&response)
+		artifactResponse := &model.ArtifactResponse{}
+		err = proto.Unmarshal(data, artifactResponse)
 		// TODO confirm appropriate error response for this service
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+		response := i.makeResponse(artifactResponse.Request, artifactResponse.User)
 		artResponseEnv := saml.ArtifactResponseEnvelope{}
 		artResponse := &artResponseEnv.Body.ArtifactResponse
 		artResponse.ID = saml.NewID()
@@ -64,7 +64,7 @@ func (i *IDP) DefaultArtifactResolveHandler() http.HandlerFunc {
 				Value: "urn:oasis:names:tc:SAML:2.0:status:Success",
 			},
 		}
-		artResponse.Response = response
+		artResponse.Response = *response
 
 		signature, err := i.signer.CreateSignature(response.Assertion)
 		// TODO confirm appropriate error response for this service

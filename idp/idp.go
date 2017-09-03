@@ -23,6 +23,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/amdonov/lite-idp/model"
 	"github.com/amdonov/lite-idp/store"
 	"github.com/amdonov/lite-idp/ui"
 	"github.com/amdonov/xmlsig"
@@ -41,7 +42,7 @@ type IDP struct {
 	UserCache              store.Cache
 	TLSConfig              *tls.Config
 	PasswordValidator      PasswordValidator
-	AttributeRetrievers    []AttributeRetriever
+	AttributeSources       []AttributeSource
 	MetadataHandler        http.HandlerFunc
 	ArtifactResolveHandler http.HandlerFunc
 	RedirectSSOHandler     http.HandlerFunc
@@ -65,6 +66,14 @@ func (i *IDP) Handler() (http.Handler, error) {
 			return nil, err
 		}
 		err = i.configureStores()
+		if err != nil {
+			return nil, err
+		}
+		err = i.configureValidator()
+		if err != nil {
+			return nil, err
+		}
+		err = i.configureAttributeSources()
 		if err != nil {
 			return nil, err
 		}
@@ -123,6 +132,28 @@ func (i *IDP) configureStores() error {
 	return nil
 }
 
+func (i *IDP) configureValidator() error {
+	if i.PasswordValidator == nil {
+		validator, err := NewValidator()
+		if err != nil {
+			return err
+		}
+		i.PasswordValidator = validator
+	}
+	return nil
+}
+
+func (i *IDP) configureAttributeSources() error {
+	if i.AttributeSources == nil {
+		source, err := NewAttributeSource()
+		if err != nil {
+			return err
+		}
+		i.AttributeSources = []AttributeSource{source}
+	}
+	return nil
+}
+
 func (i *IDP) buildRoutes() error {
 	if i.Router == nil {
 		i.Router = httprouter.New()
@@ -153,9 +184,6 @@ func (i *IDP) buildRoutes() error {
 
 	// Handle password logins
 	if i.PasswordLoginHandler == nil {
-		if i.PasswordValidator == nil {
-			i.PasswordValidator = NewValidator()
-		}
 		i.PasswordLoginHandler = i.DefaultPasswordLoginHandler()
 	}
 	r.HandlerFunc("POST", "/ui/login.html", i.PasswordLoginHandler)
@@ -174,4 +202,13 @@ func getIP(request *http.Request) net.IP {
 		addr = strings.Split(addr, ":")[0]
 	}
 	return net.ParseIP(addr)
+}
+
+func (i *IDP) setUserAttributes(user *model.User) error {
+	for _, source := range i.AttributeSources {
+		if err := source.AddAttributes(user); err != nil {
+			return err
+		}
+	}
+	return nil
 }

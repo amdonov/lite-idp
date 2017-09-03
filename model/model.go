@@ -26,6 +26,35 @@ import (
 	"github.com/golang/protobuf/ptypes"
 )
 
+func (u *User) AppendAttributes(atts []*Attribute) {
+	if u.Attributes == nil {
+		u.Attributes = atts
+		return
+	}
+	u.Attributes = append(u.Attributes, atts...)
+}
+
+func (u *User) AttributeStatement() *saml.AttributeStatement {
+	if u.Attributes == nil {
+		return nil
+	}
+	stmt := &saml.AttributeStatement{}
+	for _, val := range u.Attributes {
+		attVals := make([]saml.AttributeValue, len(val.Value))
+		for i := range val.Value {
+			attVals[i] = saml.AttributeValue{Value: val.Value[i]}
+		}
+		att := saml.Attribute{
+			FriendlyName:   val.Name,
+			Name:           val.Name,
+			NameFormat:     "urn:oasis:names:tc:SAML:2.0:attrname-format:basic",
+			AttributeValue: attVals,
+		}
+		stmt.Attribute = append(stmt.Attribute, att)
+	}
+	return stmt
+}
+
 func NewAuthnRequest(src *saml.AuthnRequest, relayState string) (*AuthnRequest, error) {
 	t, err := ptypes.TimestampProto(src.IssueInstant)
 	if err != nil {

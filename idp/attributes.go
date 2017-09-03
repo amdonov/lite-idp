@@ -14,8 +14,46 @@
 
 package idp
 
-import "github.com/amdonov/lite-idp/saml"
+import (
+	"github.com/amdonov/lite-idp/model"
+	"github.com/spf13/viper"
+)
 
-type AttributeRetriever interface {
-	Retrieve(*saml.AuthenticatedUser) (map[string][]string, error)
+type AttributeSource interface {
+	AddAttributes(*model.User) error
+}
+
+type simpleSource struct {
+	users map[string][]*model.Attribute
+}
+
+type UserAttributes struct {
+	Name       string
+	Attributes map[string][]string
+}
+
+func (ss *simpleSource) AddAttributes(user *model.User) error {
+	if atts, ok := ss.users[user.Name]; ok {
+		user.AppendAttributes(atts)
+	}
+	return nil
+}
+
+func NewAttributeSource() (AttributeSource, error) {
+	userAttributes := []UserAttributes{}
+	err := viper.UnmarshalKey("users", &userAttributes)
+	if err != nil {
+		return nil, err
+	}
+	users := make(map[string][]*model.Attribute)
+	for i := range userAttributes {
+		user := userAttributes[i]
+		atts := []*model.Attribute{}
+		for key, value := range user.Attributes {
+			att := &model.Attribute{Name: key, Value: value}
+			atts = append(atts, att)
+		}
+		users[user.Name] = atts
+	}
+	return &simpleSource{users}, nil
 }
