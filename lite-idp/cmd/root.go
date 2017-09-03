@@ -23,9 +23,7 @@ import (
 	"strings"
 
 	"github.com/amdonov/lite-idp/idp"
-	"github.com/amdonov/lite-idp/ui"
 	"github.com/gorilla/handlers"
-	"github.com/julienschmidt/httprouter"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -42,47 +40,16 @@ var RootCmd = &cobra.Command{
 		// Listen for shutdown signal
 		stop := make(chan os.Signal, 1)
 		signal.Notify(stop, os.Interrupt)
-		tlsConfig, err := idp.ConfigureTLS()
+		idp := &idp.IDP{}
+		handler, err := idp.Handler()
 		if err != nil {
 			return err
 		}
-		serverName := viper.GetString("server-name")
-		entityID := viper.GetString("entity-id")
-		if entityID == "" {
-			entityID = fmt.Sprintf("https://%s/", serverName)
-		}
-		router := httprouter.New()
-		userInterface := ui.UI()
-		router.Handler("GET", "/ui/*path", userInterface)
-		router.Handler("GET", "/favicon.ico", userInterface)
-		i, err := idp.New(idp.Configuration{
-			PasswordValidator: idp.NewValidator(),
-			TLSConfig:         tlsConfig,
-			EntityID:          entityID,
-			ArtifactResolutionServiceLocation: fmt.Sprintf("https://%s%s", serverName, viper.GetString("artifact-service-path")),
-			AttributeServiceLocation:          fmt.Sprintf("https://%s%s", serverName, viper.GetString("attribute-service-path")),
-			SingleSignOnServiceLocation:       fmt.Sprintf("https://%s%s", serverName, viper.GetString("sso-service-path")),
-		})
-		if err != nil {
-			return err
-		}
-		metadata, err := i.Metadata()
-		if err != nil {
-			return err
-		}
-		router.HandlerFunc("GET", viper.GetString("metadata-path"), metadata)
-		sso, err := i.SSOService()
-		if err != nil {
-			return err
-		}
-		router.HandlerFunc("GET", viper.GetString("sso-service-path"), sso)
 		server := &http.Server{
-			TLSConfig: tlsConfig,
-			Handler:   handlers.CombinedLoggingHandler(os.Stdout, hsts(router)),
+			TLSConfig: idp.TLSConfig,
+			Handler:   handlers.CombinedLoggingHandler(os.Stdout, hsts(handler)),
 			Addr:      viper.GetString("listen-address"),
 		}
-		router.HandlerFunc("POST", viper.GetString("artifact-service-path"), i.ArtifactResolve())
-		router.HandlerFunc("POST", "/ui/login.html", i.PasswordLogin())
 		go func() {
 			// Handle shutdown signal
 			<-stop

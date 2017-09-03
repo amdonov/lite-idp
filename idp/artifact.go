@@ -24,7 +24,7 @@ import (
 	"github.com/amdonov/lite-idp/saml"
 )
 
-func (i *idp) ArtifactResolve() http.HandlerFunc {
+func (i *IDP) DefaultArtifactResolveHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		decoder := xml.NewDecoder(r.Body)
 		var resolveEnv saml.ArtifactResolveEnvelope
@@ -37,7 +37,7 @@ func (i *idp) ArtifactResolve() http.HandlerFunc {
 		// TODO validate resolveEnv before proceeding
 		artifact := resolveEnv.Body.ArtifactResolve.Artifact
 		var response saml.Response
-		data, err := i.tempCache.Get(artifact)
+		data, err := i.TempCache.Get(artifact)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -57,7 +57,7 @@ func (i *idp) ArtifactResolve() http.HandlerFunc {
 		artResponse.InResponseTo = resolveEnv.Body.ArtifactResolve.ID
 		artResponse.Version = "2.0"
 		artResponse.Issuer = &saml.Issuer{
-			Value: i.configuration.EntityID,
+			Value: i.entityID,
 		}
 		artResponse.Status = &saml.Status{
 			StatusCode: saml.StatusCode{

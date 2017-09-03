@@ -14,6 +14,24 @@
 
 package saml
 
+import (
+	"fmt"
+	"net"
+
+	"github.com/google/uuid"
+)
+
+type AuthenticatedUser struct {
+	Name    string
+	Format  string
+	Context string
+	IP      net.IP
+}
+
+func NewID() string {
+	return fmt.Sprintf("_%s", uuid.New())
+}
+
 func NewIssuer(issuer string) *Issuer {
 	return &Issuer{Format: "urn:oasis:names:tc:SAML:2.0:nameid-format:entity", Value: issuer}
 }
@@ -24,13 +42,15 @@ func NewAttributeStatement(attributes map[string][]string) *AttributeStatement {
 	}
 	stmt := &AttributeStatement{}
 	for key, values := range attributes {
-		att := Attribute{}
-		att.FriendlyName = key
-		att.Name = key
-		att.NameFormat = "urn:oasis:names:tc:SAML:2.0:attrname-format:basic"
-		for index := range values {
-			val := AttributeValue{Value: values[index]}
-			att.AttributeValue = append(att.AttributeValue, val)
+		attVals := make([]AttributeValue, len(values))
+		for i := range values {
+			attVals[i] = AttributeValue{Value: values[i]}
+		}
+		att := Attribute{
+			FriendlyName:   key,
+			Name:           key,
+			NameFormat:     "urn:oasis:names:tc:SAML:2.0:attrname-format:basic",
+			AttributeValue: attVals,
 		}
 		stmt.Attribute = append(stmt.Attribute, att)
 	}

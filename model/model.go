@@ -26,18 +26,19 @@ import (
 	"github.com/golang/protobuf/ptypes"
 )
 
-func (a *AuthnRequest) Populate(src *saml.AuthnRequest, relayState string) error {
-	a.AssertionConsumerServiceURL = src.AssertionConsumerServiceURL
-	a.AttributeConsumingServiceIndex = src.AttributeConsumingServiceIndex
-	a.Destination = src.Destination
-	a.ID = src.ID
-	a.Issuer = src.Issuer
+func NewAuthnRequest(src *saml.AuthnRequest, relayState string) (*AuthnRequest, error) {
 	t, err := ptypes.TimestampProto(src.IssueInstant)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	a.IssueInstant = t
-	a.ProtocolBinding = src.ProtocolBinding
-	a.RelayState = relayState
-	return nil
+	return &AuthnRequest{
+		AssertionConsumerServiceURL:    src.AssertionConsumerServiceURL,
+		AttributeConsumingServiceIndex: src.AttributeConsumingServiceIndex,
+		Destination:                    src.Destination,
+		ID:                             src.ID,
+		ProtocolBinding:                src.ProtocolBinding,
+		RelayState:                     relayState,
+		IssueInstant:                   t,
+		Issuer:                         src.Issuer,
+	}, nil
 }

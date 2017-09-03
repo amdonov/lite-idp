@@ -24,8 +24,8 @@ import (
 	"github.com/amdonov/xmlsig"
 )
 
-func (i *idp) Metadata() (http.HandlerFunc, error) {
-	certData := i.configuration.TLSConfig.Certificates[0].Certificate[0]
+func (i *IDP) DefaultMetadataHandler() (http.HandlerFunc, error) {
+	certData := i.TLSConfig.Certificates[0].Certificate[0]
 	keyDescriptor := saml.KeyDescriptor{
 		Use: "signing",
 		KeyInfo: xmlsig.KeyInfo{
@@ -39,7 +39,7 @@ func (i *idp) Metadata() (http.HandlerFunc, error) {
 	ed := &saml.IDPEntityDescriptor{
 		EntityDescriptor: saml.EntityDescriptor{
 			ID:       saml.NewID(),
-			EntityID: i.configuration.EntityID,
+			EntityID: i.entityID,
 		},
 		IDPSSODescriptor: saml.IDPSSODescriptor{
 			ProtocolSupportEnumeration: "urn:oasis:names:tc:SAML:2.0:protocol",
@@ -47,7 +47,7 @@ func (i *idp) Metadata() (http.HandlerFunc, error) {
 			ArtifactResolutionService: saml.ArtifactResolutionService{
 				Service: saml.Service{
 					Binding:  "urn:oasis:names:tc:SAML:2.0:bindings:SOAP",
-					Location: i.configuration.ArtifactResolutionServiceLocation,
+					Location: i.artifactResolutionServiceLocation,
 				},
 				Index: 1,
 			},
@@ -55,7 +55,7 @@ func (i *idp) Metadata() (http.HandlerFunc, error) {
 			SingleSignOnService: saml.SingleSignOnService{
 				Service: saml.Service{
 					Binding:  "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect",
-					Location: i.configuration.SingleSignOnServiceLocation,
+					Location: i.singleSignOnServiceLocation,
 				},
 			},
 		},
@@ -65,7 +65,7 @@ func (i *idp) Metadata() (http.HandlerFunc, error) {
 			AttributeService: saml.AttributeService{
 				Service: saml.Service{
 					Binding:  "urn:oasis:names:tc:SAML:2.0:bindings:SOAP",
-					Location: i.configuration.AttributeServiceLocation,
+					Location: i.attributeServiceLocation,
 				},
 			},
 			NameIDFormat: "urn:oasis:names:tc:SAML:1.1:nameid-format:X509SubjectName",

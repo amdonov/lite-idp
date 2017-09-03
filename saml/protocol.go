@@ -16,18 +16,10 @@ package saml
 
 import (
 	"encoding/xml"
-	"net"
 	"time"
 
 	"github.com/amdonov/xmlsig"
 )
-
-type AuthenticatedUser struct {
-	Name    string
-	Format  string
-	Context string
-	IP      net.IP
-}
 
 type AuthnRequest struct {
 	RequestAbstractType

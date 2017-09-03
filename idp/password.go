@@ -55,7 +55,7 @@ func NewValidator() PasswordValidator {
 	return &simpleValiadator{users}
 }
 
-func (i *idp) PasswordLogin() http.HandlerFunc {
+func (i *IDP) DefaultPasswordLoginHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		err := func() error {
 			err := r.ParseForm()
@@ -63,7 +63,7 @@ func (i *idp) PasswordLogin() http.HandlerFunc {
 				return err
 			}
 			requestId := r.Form.Get("requestId")
-			data, err := i.tempCache.Get(requestId)
+			data, err := i.TempCache.Get(requestId)
 			if err != nil {
 				return err
 			}
@@ -73,7 +73,7 @@ func (i *idp) PasswordLogin() http.HandlerFunc {
 				return err
 			}
 			userName := r.Form.Get("username")
-			err = i.configuration.PasswordValidator.Validate(userName, r.Form.Get("password"))
+			err = i.PasswordValidator.Validate(userName, r.Form.Get("password"))
 			if err != nil {
 				return err
 			}

@@ -30,7 +30,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func (i *idp) SSOService() (http.HandlerFunc, error) {
+func (i *IDP) DefaultRedirectSSOHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		err := func() error {
 			err := r.ParseForm()
@@ -60,8 +60,7 @@ func (i *idp) SSOService() (http.HandlerFunc, error) {
 
 			// need to display the login form
 			// save the request
-			saveableRequest := &model.AuthnRequest{}
-			err = saveableRequest.Populate(loginReq, relayState)
+			saveableRequest, err := model.NewAuthnRequest(loginReq, relayState)
 			if err != nil {
 				return err
 			}
@@ -70,7 +69,7 @@ func (i *idp) SSOService() (http.HandlerFunc, error) {
 				return err
 			}
 			id := uuid.New().String()
-			err = i.tempCache.Set(id, data)
+			err = i.TempCache.Set(id, data)
 			if err != nil {
 				return err
 			}
@@ -81,5 +80,5 @@ func (i *idp) SSOService() (http.HandlerFunc, error) {
 			log.Error(err)
 			http.Error(w, err.Error(), http.StatusBadRequest)
 		}
-	}, nil
+	}
 }

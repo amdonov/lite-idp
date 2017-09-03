@@ -12,14 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package saml
+package idp
 
-import (
-	"fmt"
+import "github.com/amdonov/lite-idp/saml"
 
-	"github.com/google/uuid"
-)
-
-func NewID() string {
-	return fmt.Sprintf("_%s", uuid.New())
+type AttributeRetriever interface {
+	Retrieve(*saml.AuthenticatedUser) (map[string][]string, error)
 }

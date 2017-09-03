@@ -28,7 +28,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func (i *idp) respond(authRequest *model.AuthnRequest, user *saml.AuthenticatedUser, w http.ResponseWriter, r *http.Request) error {
+func (i *IDP) respond(authRequest *model.AuthnRequest, user *saml.AuthenticatedUser, w http.ResponseWriter, r *http.Request) error {
 
 	// Just do artifact for now
 	target, err := url.Parse(authRequest.AssertionConsumerServiceURL)
@@ -36,7 +36,7 @@ func (i *idp) respond(authRequest *model.AuthnRequest, user *saml.AuthenticatedU
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 	parameters := url.Values{}
-	artifact := getArtifact(i.configuration.EntityID)
+	artifact := getArtifact(i.entityID)
 	// Store the artifact in the cache
 	response := i.makeResponse(authRequest, user)
 	var buffer bytes.Buffer
@@ -45,7 +45,7 @@ func (i *idp) respond(authRequest *model.AuthnRequest, user *saml.AuthenticatedU
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
-	i.tempCache.Set(artifact, buffer.Bytes())
+	i.TempCache.Set(artifact, buffer.Bytes())
 	parameters.Add("SAMLart", artifact)
 	parameters.Add("RelayState", authRequest.RelayState)
 	target.RawQuery = parameters.Encode()
@@ -55,7 +55,7 @@ func (i *idp) respond(authRequest *model.AuthnRequest, user *saml.AuthenticatedU
 	return nil
 }
 
-func (i *idp) makeResponse(authRequest *model.AuthnRequest, user *saml.AuthenticatedUser) *saml.Response {
+func (i *IDP) makeResponse(authRequest *model.AuthnRequest, user *saml.AuthenticatedUser) *saml.Response {
 	now := time.Now()
 	fiveFromNow := now.Add(5 * time.Minute)
 	s := &saml.Response{
@@ -70,20 +70,20 @@ func (i *idp) makeResponse(authRequest *model.AuthnRequest, user *saml.Authentic
 			},
 			InResponseTo: authRequest.ID,
 			Issuer: &saml.Issuer{
-				Value: i.configuration.EntityID,
+				Value: i.entityID,
 			},
 		},
 		Assertion: &saml.Assertion{
 			ID:           saml.NewID(),
 			IssueInstant: now,
 			Issuer: &saml.Issuer{
-				Value: i.configuration.EntityID,
+				Value: i.entityID,
 			},
 			Version: "2.0",
 			Subject: &saml.Subject{
 				NameID: &saml.NameID{
 					Format:          user.Format,
-					NameQualifier:   i.configuration.EntityID,
+					NameQualifier:   i.entityID,
 					SPNameQualifier: authRequest.Issuer,
 					Value:           user.Name,
 				},
