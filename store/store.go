@@ -1,59 +1,36 @@
+// Copyright © 2017 Aaron Donovan <amdonov@gmail.com>
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package store
 
 import (
-	"encoding/json"
-	"github.com/garyburd/redigo/redis"
 	"time"
+
+	"github.com/allegro/bigcache"
 )
 
-type Storer interface {
-	Store(key, value interface{}, time int) error
-	Retrieve(key interface{}, value interface{}) error
+type Cache interface {
+	Set(key string, entry []byte) error
+	Get(key string) ([]byte, error)
+	Delete(key string) error
 }
 
-type storer struct {
-	pool *redis.Pool
-}
-
-func (s *storer) Store(key, value interface{}, time int) error {
-	conn := s.pool.Get()
-	defer conn.Close()
-	data, err := json.Marshal(value)
+// Default to a big cache implementation
+func New(duration time.Duration) (Cache, error) {
+	cache, err := bigcache.NewBigCache(bigcache.DefaultConfig(duration))
 	if err != nil {
-		return err
+		return nil, err
 	}
-	conn.Do("SETEX", key, time, data)
-	return nil
-}
-
-func (s *storer) Retrieve(key interface{}, value interface{}) error {
-	conn := s.pool.Get()
-	defer conn.Close()
-	data, err := conn.Do("GET", key)
-	if err != nil {
-		return err
-	}
-	return json.Unmarshal(data.([]byte), value)
-}
-
-func newPool(server string) *redis.Pool {
-	return &redis.Pool{
-		MaxIdle:     3,
-		IdleTimeout: 240 * time.Second,
-		Dial: func() (redis.Conn, error) {
-			c, err := redis.Dial("tcp", server)
-			if err != nil {
-				return nil, err
-			}
-			return c, err
-		},
-		TestOnBorrow: func(c redis.Conn, t time.Time) error {
-			_, err := c.Do("PING")
-			return err
-		},
-	}
-}
-
-func New(address string) Storer {
-	return &storer{newPool(address)}
+	return &bigcacheStore{cache}, nil
 }

@@ -1,0 +1,11 @@
+tls-ca: hack/tls-setup/certs/ca.pem
+tls-private-key: hack/tls-setup/certs/idp-key.pem
+tls-certificate: hack/tls-setup/certs/idp.pem
+
+users:
+ - name: amdonov
+   password: '$2a$10$U41uarKrlduOofvJRC724.7V7RRZOciyC4TZ4UAQUtWuPuKVvByR.'
+   properties:
+     surName: Donovan
+     firstName: Aaron
+     email: amdonov@gmail.com

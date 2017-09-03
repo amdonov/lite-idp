@@ -1,11 +1,13 @@
 package authentication
 
 import (
-	"bytes"
 	"crypto/x509/pkix"
+	"fmt"
+	"net/http"
+	"strings"
+
 	"github.com/amdonov/lite-idp/protocol"
 	"github.com/amdonov/lite-idp/store"
-	"net/http"
 )
 
 func NewPKIAuthenticator(callback AuthFunc, store store.Storer, fallback Authenticator) Authenticator {
@@ -43,36 +45,36 @@ func (auth *pkiAuthenticator) Authenticate(authnRequest *protocol.AuthnRequest, 
 	auth.callback(authnRequest, relayState, user, writer, request)
 }
 
-// Quick attempt at RFC 2253
-func getDN(names []pkix.AttributeTypeAndValue) string {
-	var buffer bytes.Buffer
+// GetSubjectDN is a quick attempt at RFC 2253.
+func GetSubjectDN(subject pkix.Name) string {
+	rdns := []string{}
+	names := subject.Names
 	// Reverse the order
-	for i := len(names); i > 0; i-- {
-		t := names[i-1].Type
+	for i := len(names) - 1; i >= 0; i-- {
+		t := names[i].Type
 		if len(t) == 4 && t[0] == 2 && t[1] == 5 && t[2] == 4 {
+			var rdnName string
 			switch t[3] {
 			case 3:
-				buffer.WriteString("CN")
+				rdnName = "CN"
 			case 6:
-				buffer.WriteString("C")
+				rdnName = "C"
 			case 7:
-				buffer.WriteString("L")
+				rdnName = "L"
 			case 8:
-				buffer.WriteString("ST")
+				rdnName = "ST"
 			case 9:
-				buffer.WriteString("STREET")
+				rdnName = "STREET"
 			case 10:
-				buffer.WriteString("O")
+				rdnName = "O"
 			case 11:
-				buffer.WriteString("OU")
+				rdnName = "OU"
+			default:
+				panic("RFC 2253 implementation is incomplete")
 			}
-		}
-		buffer.WriteString("=")
-		val, _ := names[i-1].Value.(string)
-		buffer.WriteString(val)
-		if i > 1 {
-			buffer.WriteString(", ")
+			rdnValue, _ := names[i].Value.(string)
+			rdns = append(rdns, fmt.Sprintf("%s=%s", rdnName, rdnValue))
 		}
 	}
-	return buffer.String()
+	return strings.Join(rdns, ", ")
 }

@@ -1,6 +1,0 @@
-{
-    "CN=John Doe, OU=sample, O=lite idp, L=Charlottesville, ST=Virginia, C=US": {
-        "givenName": ["John"],
-        "sn": ["Doe"]
-    }
-}
