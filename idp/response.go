@@ -17,44 +17,26 @@ package idp
 import (
 	"crypto/sha1"
 	"encoding/base64"
+	"errors"
 	"net"
 	"net/http"
-	"net/url"
 	"time"
 
 	"github.com/amdonov/lite-idp/model"
 	"github.com/amdonov/lite-idp/saml"
-	"github.com/golang/protobuf/proto"
 	"github.com/google/uuid"
 )
 
 func (i *IDP) respond(authRequest *model.AuthnRequest, user *model.User,
 	w http.ResponseWriter, r *http.Request) error {
-
-	// Just do artifact for now
-	target, err := url.Parse(authRequest.AssertionConsumerServiceURL)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+	switch authRequest.ProtocolBinding {
+	case "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Artifact":
+		return i.sendArtifactResponse(authRequest, user, w, r)
+	case "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST":
+		return i.sendPostResponse(authRequest, user, w, r)
+	default:
+		return errors.New("unsupported protocol binding")
 	}
-	parameters := url.Values{}
-	artifact := getArtifact(i.entityID)
-	// Store required data in the cache
-	response := &model.ArtifactResponse{
-		User:    user,
-		Request: authRequest,
-	}
-	data, err := proto.Marshal(response)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
-	i.TempCache.Set(artifact, data)
-	parameters.Add("SAMLart", artifact)
-	parameters.Add("RelayState", authRequest.RelayState)
-	target.RawQuery = parameters.Encode()
-	// Don't to temporary redirect. We don't want the post resent
-	http.Redirect(w, r, target.String(), http.StatusFound)
-
-	return nil
 }
 
 func (i *IDP) makeResponse(authRequest *model.AuthnRequest, user *model.User) *saml.Response {

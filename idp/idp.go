@@ -21,6 +21,7 @@ import (
 	"net"
 	"net/http"
 	"strings"
+	"text/template"
 	"time"
 
 	"github.com/amdonov/lite-idp/model"
@@ -57,12 +58,16 @@ type IDP struct {
 	artifactResolutionServiceLocation string
 	attributeServiceLocation          string
 	singleSignOnServiceLocation       string
+	postTemplate                      *template.Template
 }
 
 func (i *IDP) Handler() (http.Handler, error) {
 	if i.handler == nil {
-		i.configureConstants()
-		err := i.configureCrypto()
+		err := i.configureConstants()
+		if err != nil {
+			return nil, err
+		}
+		err = i.configureCrypto()
 		if err != nil {
 			return nil, err
 		}
@@ -87,7 +92,12 @@ func (i *IDP) Handler() (http.Handler, error) {
 	return i.handler, nil
 }
 
-func (i *IDP) configureConstants() {
+func (i *IDP) configureConstants() error {
+	templ, err := template.New("post").Parse(postTemplate)
+	if err != nil {
+		return err
+	}
+	i.postTemplate = templ
 	serverName := viper.GetString("server-name")
 	i.entityID = viper.GetString("entity-id")
 	if i.entityID == "" {
@@ -97,6 +107,7 @@ func (i *IDP) configureConstants() {
 	i.artifactResolutionServiceLocation = fmt.Sprintf("https://%s%s", serverName, viper.GetString("artifact-service-path"))
 	i.attributeServiceLocation = fmt.Sprintf("https://%s%s", serverName, viper.GetString("attribute-service-path"))
 	i.singleSignOnServiceLocation = fmt.Sprintf("https://%s%s", serverName, viper.GetString("sso-service-path"))
+	return nil
 }
 
 func (i *IDP) configureCrypto() error {
