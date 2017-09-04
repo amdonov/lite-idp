@@ -32,7 +32,7 @@ func ConfigureTLS() (*tls.Config, error) {
 	tlsConfig := &tls.Config{
 		Certificates: []tls.Certificate{cert},
 		//Some but not all operations will require a client cert
-		ClientAuth: tls.RequestClientCert,
+		ClientAuth: tls.VerifyClientCertIfGiven,
 		MinVersion: tls.VersionTLS12,
 	}
 	if ca != "" {
@@ -43,6 +43,7 @@ func ConfigureTLS() (*tls.Config, error) {
 		caCertPool := x509.NewCertPool()
 		caCertPool.AppendCertsFromPEM(caCert)
 		tlsConfig.RootCAs = caCertPool
+		tlsConfig.ClientCAs = caCertPool
 	}
 	tlsConfig.BuildNameToCertificate()
 	return tlsConfig, nil
