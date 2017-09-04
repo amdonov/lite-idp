@@ -43,8 +43,8 @@ type IDPSSODescriptor struct {
 	ProtocolSupportEnumeration string   `xml:"protocolSupportEnumeration,attr"`
 	KeyDescriptor              KeyDescriptor
 	ArtifactResolutionService  ArtifactResolutionService
-	SingleSignOnService        SingleSignOnService
 	NameIDFormat               string `xml:"NameIDFormat"`
+	SingleSignOnService        SingleSignOnService
 }
 
 type Service struct {

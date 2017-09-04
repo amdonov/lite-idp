@@ -52,6 +52,7 @@ type IDP struct {
 	signer  xmlsig.Signer
 
 	// properties set or derived from configuration settings
+	serverName                        string
 	entityID                          string
 	artifactResolutionServiceLocation string
 	attributeServiceLocation          string
@@ -92,6 +93,7 @@ func (i *IDP) configureConstants() {
 	if i.entityID == "" {
 		i.entityID = fmt.Sprintf("https://%s/", serverName)
 	}
+	i.serverName = serverName
 	i.artifactResolutionServiceLocation = fmt.Sprintf("https://%s%s", serverName, viper.GetString("artifact-service-path"))
 	i.attributeServiceLocation = fmt.Sprintf("https://%s%s", serverName, viper.GetString("attribute-service-path"))
 	i.singleSignOnServiceLocation = fmt.Sprintf("https://%s%s", serverName, viper.GetString("sso-service-path"))

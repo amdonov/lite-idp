@@ -43,7 +43,8 @@ type Conditions struct {
 
 type SubjectLocality struct {
 	XMLName xml.Name `xml:"urn:oasis:names:tc:SAML:2.0:assertion SubjectLocality"`
-	Address net.IP   `xml:",attr"`
+	Address net.IP   `xml:",attr,omitempty"`
+	DNSName string   `xml:",attr,omitempty"`
 }
 
 type AuthnContext struct {

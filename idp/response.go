@@ -100,10 +100,10 @@ func (i *IDP) makeResponse(authRequest *model.AuthnRequest, user *model.User) *s
 				},
 			},
 			AuthnStatement: &saml.AuthnStatement{
-				AuthnInstant:    now,
-				SessionIndex:    saml.NewID(),
+				AuthnInstant: now,
+				SessionIndex: saml.NewID(),
 				SubjectLocality: &saml.SubjectLocality{
-				//Address: confData.Address,
+					DNSName: i.serverName,
 				},
 				AuthnContext: &saml.AuthnContext{
 					AuthnContextClassRef: user.Context,
