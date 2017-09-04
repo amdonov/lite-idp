@@ -1,0 +1,5 @@
+image::logo.png[]
+
+= LITE-IDP
+
+LITE-IDP is a lightweight SAML 2.0 Identity Provider and Service Provider library written in Go. The project's goal is to create an IdP https://www.shibboleth.net/[Shibboleth's IdP].
