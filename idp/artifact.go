@@ -23,19 +23,27 @@ import (
 	"github.com/amdonov/lite-idp/model"
 	"github.com/amdonov/lite-idp/saml"
 	"github.com/golang/protobuf/proto"
+	log "github.com/sirupsen/logrus"
 )
 
 func (i *IDP) DefaultArtifactResolveHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		// We require transport authentication rather than message authentication
+		tlsCert, err := getCertFromRequest(r)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusUnauthorized)
+			return
+		}
+		log.Infof("received artifact resolution request from %s", getSubjectDN(tlsCert.Subject))
 		decoder := xml.NewDecoder(r.Body)
 		var resolveEnv saml.ArtifactResolveEnvelope
-		err := decoder.Decode(&resolveEnv)
+		err = decoder.Decode(&resolveEnv)
 		// TODO confirm appropriate error response for this service
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		// TODO validate resolveEnv before proceeding
+
 		artifact := resolveEnv.Body.ArtifactResolve.Artifact
 		data, err := i.TempCache.Get(artifact)
 		if err != nil {
