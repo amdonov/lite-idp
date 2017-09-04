@@ -82,3 +82,54 @@ lite-idp --config lite-idp.yaml
 ----
 
 By default lite-idp will look for the configuration file at /etc/lite-idp/lite-idp.yaml. In addition to the configuration file many options can be provided on the command line or via environment variables.
+
+== Customizing
+
+All aspects of the IdP's behavior are customizable. It's controlled through an open struct and viper configuration values. Reasonable defaults make it easy to get running quickly and tailor it over time. The default behavior is shown it the following code.
+
+.Section of lite-idp/cmd/root.go
+----
+import "github.com/amdonov/lite-idp/idp"
+...
+		idp := &idp.IDP{} // <1>
+		handler, err := idp.Handler()
+		if err != nil {
+			return err
+		}
+		server := &http.Server{
+			TLSConfig: idp.TLSConfig,
+			Handler:   handlers.CombinedLoggingHandler(os.Stdout, hsts(handler)),
+			Addr:      viper.GetString("listen-address"),
+		}
+----
+<1> Default IDP struct without configuration
+
+One can examine the struct to see interation points. Some key ones are highlighted below.
+
+=== Password Validation
+
+Many organizations still use username/password for authentication. Validation of user provided passwords is controlled by the IDP's PasswordValidator. If one isn't provided it will use a simple one that reads hashed passwords from the configuration file. Developers can use that implemation as example. Viper makes it easy retrieve any required custom parameters from the configuration file.
+
+.PasswordValidator interface
+----
+type PasswordValidator interface {
+	Validate(user, password string) error
+}
+----
+
+=== User Attributes
+
+The IdP enables retrieval of user attributes from multiple sources through the AttributeSource interface. The IdP will read attributes from the configuration file if no AttributeSources are provided.
+
+.AttributeSource interface
+----
+type AttributeSource interface {
+	AddAttributes(*model.User) error
+}
+----
+
+=== Login Page
+
+The default login page was created using http://www.patternfly.org/[Patternfly's] login template. The hack/ui folder contains a small npm project that packages the HTML, JavaScript, and assets for bundling and inclusion in a go source file with https://github.com/elazarl/go-bindata-assetfs[go-bindata-assetfs]. Remember me and forgot username/password do nothing.
+
+image::login.png[]
