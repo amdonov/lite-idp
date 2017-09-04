@@ -53,17 +53,13 @@ func (i *IDP) makeResponse(authRequest *model.AuthnRequest, user *model.User) *s
 				},
 			},
 			InResponseTo: authRequest.ID,
-			Issuer: &saml.Issuer{
-				Value: i.entityID,
-			},
+			Issuer:       saml.NewIssuer(i.entityID),
 		},
 		Assertion: &saml.Assertion{
 			ID:           saml.NewID(),
 			IssueInstant: now,
-			Issuer: &saml.Issuer{
-				Value: i.entityID,
-			},
-			Version: "2.0",
+			Issuer:       saml.NewIssuer(i.entityID),
+			Version:      "2.0",
 			Subject: &saml.Subject{
 				NameID: &saml.NameID{
 					Format:          user.Format,
