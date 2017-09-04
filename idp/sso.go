@@ -56,14 +56,29 @@ func (i *IDP) DefaultRedirectSSOHandler() http.HandlerFunc {
 			loginReq := &saml.AuthnRequest{}
 			err = decoder.Decode(loginReq)
 			// check for cookie to see if user has a current session
-			// check to see if they presented a client cert
 
-			// need to display the login form
-			// save the request
+			// create saveable request
 			saveableRequest, err := model.NewAuthnRequest(loginReq, relayState)
 			if err != nil {
 				return err
 			}
+			// check to see if they presented a client cert
+			if clientCert, err := getCertFromRequest(r); err == nil {
+				user := &model.User{
+					Name:    getSubjectDN(clientCert.Subject),
+					Format:  "urn:oasis:names:tc:SAML:1.1:nameid-format:X509SubjectName",
+					Context: "urn:oasis:names:tc:SAML:2.0:ac:classes:X509",
+					IP:      getIP(r).String()}
+
+				// Add attributes
+				err = i.setUserAttributes(user)
+				if err != nil {
+					return err
+				}
+				log.Infof("successful PKI login for %s", user.Name)
+				return i.respond(saveableRequest, user, w, r)
+			}
+			// need to display the login form
 			data, err := proto.Marshal(saveableRequest)
 			if err != nil {
 				return err

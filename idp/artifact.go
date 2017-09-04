@@ -93,8 +93,6 @@ func (i *IDP) DefaultArtifactResolveHandler() http.HandlerFunc {
 
 func (i *IDP) sendArtifactResponse(authRequest *model.AuthnRequest, user *model.User,
 	w http.ResponseWriter, r *http.Request) error {
-
-	// Just do artifact for now
 	target, err := url.Parse(authRequest.AssertionConsumerServiceURL)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -114,7 +112,7 @@ func (i *IDP) sendArtifactResponse(authRequest *model.AuthnRequest, user *model.
 	parameters.Add("SAMLart", artifact)
 	parameters.Add("RelayState", authRequest.RelayState)
 	target.RawQuery = parameters.Encode()
-	// Don't to temporary redirect. We don't want the post resent
+	// Don't send temporary redirect. We don't want the post resent
 	http.Redirect(w, r, target.String(), http.StatusFound)
 
 	return nil
