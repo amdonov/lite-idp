@@ -35,7 +35,6 @@ var cfgFile string
 var RootCmd = &cobra.Command{
 	Use:   "lite-idp",
 	Short: "SAML 2 Identity Provider",
-	Long:  `TODO`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// Listen for shutdown signal
 		stop := make(chan os.Signal, 1)
