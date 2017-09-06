@@ -16,13 +16,19 @@ package idp
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
+	"net/url"
 
 	"github.com/amdonov/lite-idp/model"
 	"github.com/golang/protobuf/proto"
 	"github.com/spf13/viper"
 	"golang.org/x/crypto/bcrypt"
 )
+
+// ErrInvalidPassword should be returned by PasswordValidator if
+// the account doesn't exist or the password is incorrect.
+var ErrInvalidPassword = errors.New("invalid login or password")
 
 type PasswordValidator interface {
 	Validate(user, password string) error
@@ -39,9 +45,13 @@ type UserPassword struct {
 
 func (sv *simpleValidator) Validate(user, password string) error {
 	if pw, ok := sv.users[user]; ok {
-		return bcrypt.CompareHashAndPassword(pw, []byte(password))
+		err := bcrypt.CompareHashAndPassword(pw, []byte(password))
+		if err == bcrypt.ErrMismatchedHashAndPassword {
+			return ErrInvalidPassword
+		}
+		return err
 	}
-	return errors.New("user not found")
+	return ErrInvalidPassword
 }
 
 func NewValidator() (PasswordValidator, error) {
@@ -77,6 +87,12 @@ func (i *IDP) DefaultPasswordLoginHandler() http.HandlerFunc {
 			userName := r.Form.Get("username")
 			err = i.PasswordValidator.Validate(userName, r.Form.Get("password"))
 			if err != nil {
+				if err == ErrInvalidPassword {
+					http.Redirect(w, r, fmt.Sprintf("/ui/login.html?requestId=%s&error=%s",
+						url.QueryEscape(requestId), url.QueryEscape("Invalid login or password. Please try again.")),
+						http.StatusFound)
+					return nil
+				}
 				return err
 			}
 			// They have provided the right password

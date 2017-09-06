@@ -130,7 +130,7 @@ type AttributeSource interface {
 
 === Login Page
 
-The default login page was created using http://www.patternfly.org/[Patternfly's] login template. The hack/ui folder contains a small npm project that packages the HTML, JavaScript, and assets for bundling and inclusion in a go source file with https://github.com/elazarl/go-bindata-assetfs[go-bindata-assetfs]. Remember me and forgot username/password do nothing.
+The default login page was created using http://www.patternfly.org/[Patternfly's] login template. The hack/ui folder contains a small npm project that packages the HTML, JavaScript, and assets for bundling and inclusion in a go source file with https://github.com/elazarl/go-bindata-assetfs[go-bindata-assetfs].
 
 image::login.png[]
 

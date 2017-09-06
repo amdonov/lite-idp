@@ -22,6 +22,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 
 	"github.com/amdonov/lite-idp/model"
 	"github.com/amdonov/lite-idp/saml"
@@ -88,7 +89,8 @@ func (i *IDP) DefaultRedirectSSOHandler() http.HandlerFunc {
 			if err != nil {
 				return err
 			}
-			http.Redirect(w, r, fmt.Sprintf("/ui/login.html#%s", id), http.StatusTemporaryRedirect)
+			http.Redirect(w, r, fmt.Sprintf("/ui/login.html?requestId=%s",
+				url.QueryEscape(id)), http.StatusTemporaryRedirect)
 			return nil
 		}()
 		if err != nil {

@@ -10,6 +10,11 @@ module.exports = {
         path: path.resolve(__dirname, 'dist'),
         filename: "bundle-[hash].js"
     },
+    devServer: {
+        contentBase: path.join(__dirname, "dist"),
+        compress: true,
+        port: 9000
+    },
     module: {
         loaders: [
             // Include all CSS
