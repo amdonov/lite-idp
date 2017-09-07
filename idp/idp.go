@@ -22,7 +22,6 @@ import (
 	"net/http"
 	"strings"
 	"text/template"
-	"time"
 
 	"github.com/amdonov/lite-idp/model"
 	"github.com/amdonov/lite-idp/store"
@@ -131,14 +130,14 @@ func (i *IDP) configureCrypto() error {
 
 func (i *IDP) configureStores() error {
 	if i.TempCache == nil {
-		cache, err := store.New(time.Minute * 5)
+		cache, err := store.New(viper.GetDuration("temp-cache-duration"))
 		if err != nil {
 			return err
 		}
 		i.TempCache = cache
 	}
 	if i.UserCache == nil {
-		cache, err := store.New(time.Hour * 8)
+		cache, err := store.New(viper.GetDuration("user-cache-duration"))
 		if err != nil {
 			return err
 		}

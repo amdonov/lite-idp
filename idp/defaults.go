@@ -29,4 +29,6 @@ func init() {
 	viper.SetDefault("sso-service-path", "/SAML2/Redirect/SSO")
 	viper.SetDefault("artifact-service-path", "/SAML2/SOAP/ArtifactResolution")
 	viper.SetDefault("attribute-service-path", "/SAML2/SOAP/AttributeQuery")
+	viper.SetDefault("temp-cache-duration", "5m")
+	viper.SetDefault("user-cache-duration", "8h")
 }
