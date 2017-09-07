@@ -22,6 +22,7 @@ import (
 
 	"github.com/amdonov/lite-idp/model"
 	"github.com/golang/protobuf/proto"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -101,13 +102,12 @@ func (i *IDP) DefaultPasswordLoginHandler() http.HandlerFunc {
 				Format:  "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified",
 				Context: "urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport",
 				IP:      getIP(r).String()}
-
 			// Add attributes
 			err = i.setUserAttributes(user)
 			if err != nil {
 				return err
 			}
-
+			log.Infof("successful password login for %s", user.Name)
 			return i.respond(req, user, w, r)
 		}()
 		if err != nil {

@@ -56,13 +56,26 @@ func (i *IDP) DefaultRedirectSSOHandler() http.HandlerFunc {
 			decoder := xml.NewDecoder(req)
 			loginReq := &saml.AuthnRequest{}
 			err = decoder.Decode(loginReq)
-			// check for cookie to see if user has a current session
 
 			// create saveable request
 			saveableRequest, err := model.NewAuthnRequest(loginReq, relayState)
 			if err != nil {
 				return err
 			}
+
+			// check for cookie to see if user has a current session
+			if cookie, err := r.Cookie(i.cookieName); err == nil {
+				// Found a session cookie
+				if data, err := i.UserCache.Get(cookie.Value); err == nil {
+					// Cookie matched user in cache
+					user := &model.User{}
+					if err = proto.Unmarshal(data, user); err == nil {
+						log.Infof("found existing session for %s", user.Name)
+						return i.respond(saveableRequest, user, w, r)
+					}
+				}
+			}
+
 			// check to see if they presented a client cert
 			if clientCert, err := getCertFromRequest(r); err == nil {
 				user := &model.User{

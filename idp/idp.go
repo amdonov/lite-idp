@@ -53,6 +53,7 @@ type IDP struct {
 	signer  xmlsig.Signer
 
 	// properties set or derived from configuration settings
+	cookieName                        string
 	serverName                        string
 	entityID                          string
 	artifactResolutionServiceLocation string
@@ -98,6 +99,7 @@ func (i *IDP) configureConstants() error {
 		return err
 	}
 	i.postTemplate = templ
+	i.cookieName = viper.GetString("cookie-name")
 	serverName := viper.GetString("server-name")
 	i.entityID = viper.GetString("entity-id")
 	if i.entityID == "" {

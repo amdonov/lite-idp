@@ -24,11 +24,29 @@ import (
 
 	"github.com/amdonov/lite-idp/model"
 	"github.com/amdonov/lite-idp/saml"
+	"github.com/golang/protobuf/proto"
 	"github.com/google/uuid"
 )
 
 func (i *IDP) respond(authRequest *model.AuthnRequest, user *model.User,
 	w http.ResponseWriter, r *http.Request) error {
+	// Save user information and set session cookie
+	data, err := proto.Marshal(user)
+	if err != nil {
+		return err
+	}
+	session := uuid.New().String()
+	err = i.UserCache.Set(session, data)
+	if err != nil {
+		return err
+	}
+	http.SetCookie(w, &http.Cookie{
+		Name:     i.cookieName,
+		Path:     "/",
+		Value:    session,
+		Secure:   true,
+		HttpOnly: true,
+	})
 	switch authRequest.ProtocolBinding {
 	case "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Artifact":
 		return i.sendArtifactResponse(authRequest, user, w, r)
