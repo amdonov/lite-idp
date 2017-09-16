@@ -48,7 +48,23 @@ var serviceProviderCmd = &cobra.Command{
 			return err
 		}
 		sp := idp.ConvertMetadata(spMeta)
-		viper.Set("sps", []*idp.ServiceProvider{sp})
+		// Get the existing sps
+		sps := []*idp.ServiceProvider{}
+		if err = viper.UnmarshalKey("sps", &sps); err != nil {
+			return err
+		}
+		found := false
+		for i, client := range sps {
+			if client.EntityID == sp.EntityID {
+				sps[i] = sp
+				found = true
+				break
+			}
+		}
+		if !found {
+			sps = append(sps, sp)
+		}
+		viper.Set("sps", sps)
 		return viper.WriteConfig()
 	},
 }
@@ -76,10 +92,9 @@ func getReader(fileOrUrl string) (io.ReadCloser, error) {
 			return nil, fmt.Errorf("unexpected status code, %d, when requesting metadata", resp.StatusCode)
 		}
 		return resp.Body, nil
-	} else {
-		// Just treat as a file
-		return os.Open(fileOrUrl)
 	}
+	// Just treat as a file
+	return os.Open(fileOrUrl)
 }
 
 func init() {
