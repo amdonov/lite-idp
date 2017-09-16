@@ -35,11 +35,13 @@ func (sp *serviceProvider) MetadataFunc() (http.HandlerFunc, error) {
 		SPSSODescriptor: saml.SPSSODescriptor{
 			AuthnRequestsSigned:        true,
 			ProtocolSupportEnumeration: "urn:oasis:names:tc:SAML:2.0:protocol",
-			AssertionConsumerService: saml.AssertionConsumerService{
-				IsDefault: true,
-				Service: saml.Service{
-					Binding:  "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Artifact",
-					Location: sp.configuration.AssertionConsumerServiceURL,
+			AssertionConsumerService: []saml.AssertionConsumerService{
+				saml.AssertionConsumerService{
+					IsDefault: true,
+					Service: saml.Service{
+						Binding:  "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Artifact",
+						Location: sp.configuration.AssertionConsumerServiceURL,
+					},
 				},
 			},
 			KeyDescriptor: saml.KeyDescriptor{

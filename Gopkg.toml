@@ -52,7 +52,3 @@
 [[constraint]]
   branch = "master"
   name = "github.com/spf13/cobra"
-
-[[constraint]]
-  name = "github.com/spf13/viper"
-  version = "1.0.0"

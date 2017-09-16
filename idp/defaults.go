@@ -15,7 +15,7 @@
 package idp
 
 import (
-	"github.com/spf13/viper"
+	"github.com/theherk/viper"
 )
 
 func init() {

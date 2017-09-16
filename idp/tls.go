@@ -19,7 +19,7 @@ import (
 	"crypto/x509"
 	"io/ioutil"
 
-	"github.com/spf13/viper"
+	"github.com/theherk/viper"
 )
 
 // ConfigureTLS not requiring users to present client certificates.

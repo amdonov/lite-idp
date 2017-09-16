@@ -3,15 +3,33 @@
 
 [[projects]]
   branch = "master"
+  name = "github.com/allegro/bigcache"
+  packages = [".","queue"]
+  revision = "62de4dac703d67c7309f0ec1c220371b01ac235b"
+
+[[projects]]
+  branch = "master"
   name = "github.com/amdonov/xmlsig"
   packages = ["."]
   revision = "dbf3468a3267b5ff67843cb3f61f5fb04b4a9753"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/elazarl/go-bindata-assetfs"
+  packages = ["."]
+  revision = "30f82fa23fd844bd5bb1e5f216db87fd77b5eb43"
 
 [[projects]]
   name = "github.com/fsnotify/fsnotify"
   packages = ["."]
   revision = "629574ca2a5df945712d3079857300b5e4da0236"
   version = "v1.4.2"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/golang/protobuf"
+  packages = ["proto","ptypes","ptypes/any","ptypes/duration","ptypes/timestamp"]
+  revision = "11b8df160996e00fd4b55cbaafb3d84ec6d50fa8"
 
 [[projects]]
   name = "github.com/google/uuid"
@@ -28,7 +46,7 @@
 [[projects]]
   branch = "master"
   name = "github.com/hashicorp/hcl"
-  packages = [".","hcl/ast","hcl/parser","hcl/scanner","hcl/strconv","hcl/token","json/parser","json/scanner","json/token"]
+  packages = [".","hcl/ast","hcl/parser","hcl/printer","hcl/scanner","hcl/strconv","hcl/token","json/parser","json/scanner","json/token"]
   revision = "8f6b1344a92ff8877cf24a5de9177bf7d0a2a187"
 
 [[projects]]
@@ -74,12 +92,6 @@
   version = "v1.0.0"
 
 [[projects]]
-  name = "github.com/satori/go.uuid"
-  packages = ["."]
-  revision = "879c5887cd475cd7864858769793b2ceb0d44feb"
-  version = "v1.1.0"
-
-[[projects]]
   name = "github.com/sirupsen/logrus"
   packages = ["."]
   revision = "f006c2ac4710855cf0f916dd6b77acf6b048dc6e"
@@ -116,15 +128,15 @@
   version = "v1.0.0"
 
 [[projects]]
-  name = "github.com/spf13/viper"
+  branch = "master"
+  name = "github.com/theherk/viper"
   packages = ["."]
-  revision = "25b30aa063fc18e48662b86996252eabdcf2f0c7"
-  version = "v1.0.0"
+  revision = "1c64bdc5d63b5e58e48d1d1b4928fc9cf735c399"
 
 [[projects]]
   branch = "master"
   name = "golang.org/x/crypto"
-  packages = ["ssh/terminal"]
+  packages = ["bcrypt","blowfish","ssh/terminal"]
   revision = "81e90905daefcd6fd217b62423c0908922eadb30"
 
 [[projects]]
@@ -148,6 +160,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "b701bff1c6c5642f8fcdb121d9c909f9eff03efd3503f5d1f46b44e834e158ae"
+  inputs-digest = "faf88b4b0b6ff6c25050ba7e7311ba7d8efd53bb32c3dc38e5335dfd48212da6"
   solver-name = "gps-cdcl"
   solver-version = 1

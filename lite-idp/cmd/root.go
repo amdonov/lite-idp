@@ -26,7 +26,7 @@ import (
 	"github.com/gorilla/handlers"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
+	"github.com/theherk/viper"
 )
 
 var cfgFile string
@@ -89,17 +89,6 @@ func Execute() {
 func init() {
 	cobra.OnInitialize(initConfig)
 	RootCmd.PersistentFlags().StringVar(&cfgFile, "config", "/etc/lite-idp/lite-idp.yaml", "config file")
-	RootCmd.Flags().StringP("tls-certificate", "c", "/etc/lite-idp/cert.pem", "PEM encoded certificate file")
-	RootCmd.Flags().StringP("tls-private-key", "k", "/etc/lite-idp/key.pem", "PEM encoded private key file")
-	RootCmd.Flags().String("tls-ca", "", "PEM encoded file containing trusted certificate authorities (default \"OS trusted authorities\")")
-	RootCmd.Flags().String("listen-address", "127.0.0.1:9443", "host:port to listen for connections")
-	RootCmd.Flags().String("server-name", "idp.example.com:9443", "FQDN used and optional port used to construct URLs")
-	RootCmd.Flags().String("entity-id", "", "SAML entityID (default \"https://$SERVER_NAME/\")")
-	RootCmd.Flags().String("metadata-path", "/metadata", "server path for serving metadata")
-	RootCmd.Flags().String("sso-service-path", "/SAML2/Redirect/SSO", "server path for redirect-based SSO service")
-	RootCmd.Flags().String("artifact-service-path", "/SAML2/SOAP/ArtifactResolution", "server path for artifact resolution service")
-	RootCmd.Flags().String("attribute-service-path", "/SAML2/SOAP/AttributeQuery", "server path for attribute query service")
-
 }
 
 // initConfig reads in config file and ENV variables if set.
@@ -114,7 +103,6 @@ func initConfig() {
 
 	viper.AutomaticEnv() // read in environment variables that match
 	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
-	viper.BindPFlags(RootCmd.Flags())
 
 	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err == nil {

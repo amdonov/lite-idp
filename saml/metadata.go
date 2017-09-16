@@ -81,7 +81,7 @@ type SPSSODescriptor struct {
 	AuthnRequestsSigned        bool     `xml:",attr"`
 	WantAssertionsSigned       bool     `xml:",attr"`
 	ProtocolSupportEnumeration string   `xml:"protocolSupportEnumeration,attr"`
-	AssertionConsumerService   AssertionConsumerService
+	AssertionConsumerService   []AssertionConsumerService
 	KeyDescriptor              KeyDescriptor
 }
 

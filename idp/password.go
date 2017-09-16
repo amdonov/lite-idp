@@ -23,7 +23,7 @@ import (
 	"github.com/amdonov/lite-idp/model"
 	"github.com/golang/protobuf/proto"
 	log "github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
+	"github.com/theherk/viper"
 	"golang.org/x/crypto/bcrypt"
 )
 

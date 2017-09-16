@@ -28,7 +28,7 @@ import (
 	"github.com/amdonov/lite-idp/ui"
 	"github.com/amdonov/xmlsig"
 	"github.com/julienschmidt/httprouter"
-	"github.com/spf13/viper"
+	"github.com/theherk/viper"
 )
 
 type IDP struct {
