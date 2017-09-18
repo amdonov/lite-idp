@@ -41,6 +41,7 @@ type IDPEntityDescriptor struct {
 type IDPSSODescriptor struct {
 	XMLName                    xml.Name `xml:"urn:oasis:names:tc:SAML:2.0:metadata IDPSSODescriptor"`
 	ProtocolSupportEnumeration string   `xml:"protocolSupportEnumeration,attr"`
+	WantAuthnRequestsSigned    bool     `xml:",attr"`
 	KeyDescriptor              KeyDescriptor
 	ArtifactResolutionService  ArtifactResolutionService
 	NameIDFormat               string `xml:"NameIDFormat"`
@@ -88,8 +89,8 @@ type SPSSODescriptor struct {
 type AssertionConsumerService struct {
 	XMLName xml.Name `xml:"urn:oasis:names:tc:SAML:2.0:metadata AssertionConsumerService"`
 	Service
-	IsDefault bool `xml:"isDefault,attr"`
-	Index     uint `xml:"index,attr"`
+	IsDefault bool   `xml:"isDefault,attr"`
+	Index     uint32 `xml:"index,attr"`
 }
 
 type KeyDescriptor struct {

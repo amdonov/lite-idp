@@ -16,6 +16,8 @@ package idp
 
 import (
 	"crypto/tls"
+	"crypto/x509"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"net"
@@ -59,32 +61,30 @@ type IDP struct {
 	attributeServiceLocation          string
 	singleSignOnServiceLocation       string
 	postTemplate                      *template.Template
+	sps                               map[string]ServiceProvider
 }
 
 func (i *IDP) Handler() (http.Handler, error) {
 	if i.handler == nil {
-		err := i.configureConstants()
-		if err != nil {
+		if err := i.configureConstants(); err != nil {
 			return nil, err
 		}
-		err = i.configureCrypto()
-		if err != nil {
+		if err := i.configureSPs(); err != nil {
 			return nil, err
 		}
-		err = i.configureStores()
-		if err != nil {
+		if err := i.configureCrypto(); err != nil {
 			return nil, err
 		}
-		err = i.configureValidator()
-		if err != nil {
+		if err := i.configureStores(); err != nil {
 			return nil, err
 		}
-		err = i.configureAttributeSources()
-		if err != nil {
+		if err := i.configureValidator(); err != nil {
 			return nil, err
 		}
-		err = i.buildRoutes()
-		if err != nil {
+		if err := i.configureAttributeSources(); err != nil {
+			return nil, err
+		}
+		if err := i.buildRoutes(); err != nil {
 			return nil, err
 		}
 		i.handler = i.Router
@@ -108,6 +108,28 @@ func (i *IDP) configureConstants() error {
 	i.artifactResolutionServiceLocation = fmt.Sprintf("https://%s%s", serverName, viper.GetString("artifact-service-path"))
 	i.attributeServiceLocation = fmt.Sprintf("https://%s%s", serverName, viper.GetString("attribute-service-path"))
 	i.singleSignOnServiceLocation = fmt.Sprintf("https://%s%s", serverName, viper.GetString("sso-service-path"))
+	return nil
+}
+
+func (i *IDP) configureSPs() error {
+	sps := []ServiceProvider{}
+	if err := viper.UnmarshalKey("sps", &sps); err != nil {
+		return err
+	}
+	i.sps = make(map[string]ServiceProvider, len(sps))
+	for j, sp := range sps {
+		block, err := base64.StdEncoding.DecodeString(sp.Certificate)
+		if err != nil {
+			return errors.New("failed to parse PEM block containing the public key")
+		}
+		cert, err := x509.ParseCertificate(block)
+		if err != nil {
+			return errors.New("failed to parse certificate: " + err.Error())
+		}
+		sps[j].publicKey = cert.PublicKey
+		i.sps[sp.EntityID] = sps[j]
+	}
+
 	return nil
 }
 

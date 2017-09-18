@@ -13,7 +13,7 @@ message AuthnRequest {
     string Destination = 5;
     string AssertionConsumerServiceURL = 6;
     string ProtocolBinding = 7;
-    string AttributeConsumingServiceIndex = 8;
+    uint32 AssertionConsumerServiceIndex = 8;
     string RelayState = 9;
 }
 

@@ -17,12 +17,16 @@ package idp
 import (
 	"bytes"
 	"compress/flate"
+	"crypto"
+	"crypto/rsa"
+	"crypto/sha1"
 	"encoding/base64"
 	"encoding/xml"
 	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/amdonov/lite-idp/model"
 	"github.com/amdonov/lite-idp/saml"
@@ -30,6 +34,86 @@ import (
 	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
 )
+
+func (i *IDP) validateRequest(request *saml.AuthnRequest, r *http.Request) error {
+	// Only accept requests from registered service providers
+	if request.Issuer == "" {
+		return errors.New("request does not contain an issuer")
+	}
+	log.Infof("received authentication request from %s", request.Issuer)
+	sp, ok := i.sps[request.Issuer]
+	if !ok {
+		return errors.New("request from an unregistered issuer")
+	}
+	// Determine the right assertion consumer service
+	var acs *AssertionConsumerService
+	for i, a := range sp.AssertionConsumerServices {
+		// Find either the matching service or the default
+		if a.Index == request.AssertionConsumerServiceIndex {
+			acs = &sp.AssertionConsumerServices[i]
+			break
+		}
+		if a.Location == request.AssertionConsumerServiceURL {
+			acs = &sp.AssertionConsumerServices[i]
+			break
+		}
+		if a.IsDefault {
+			acs = &sp.AssertionConsumerServices[i]
+		}
+	}
+	if acs == nil {
+		return errors.New("unable to determine assertion consumer service")
+	}
+	// Don't allow a different URL than specified in the metadata
+	if request.AssertionConsumerServiceURL == "" {
+		request.AssertionConsumerServiceURL = acs.Location
+	} else if request.AssertionConsumerServiceURL != acs.Location {
+		return errors.New("assertion consumer location in request does not match metadata")
+	}
+	// At this point, we're OK with the request
+	// Need to validate the signature
+	// Have to use the raw query as pointed out in the spec.
+	// https://docs.oasis-open.org/security/saml/v2.0/saml-bindings-2.0-os.pdf
+	// Line 621
+
+	// Split up the parts
+	params := strings.Split(r.URL.RawQuery, "&")
+	pMap := make(map[string]string, len(params))
+	for i := range params {
+		parts := strings.Split(params[i], "=")
+		if len(parts) != 2 {
+			return errors.New("trouble validating signature on request")
+		}
+		pMap[parts[0]] = parts[1]
+	}
+	// Order them
+	sigparts := []string{fmt.Sprintf("SAMLRequest=%s", pMap["SAMLRequest"])}
+	if state, ok := pMap["RelayState"]; ok {
+		sigparts = append(sigparts, fmt.Sprintf("RelayState=%s", state))
+	}
+	sigparts = append(sigparts, fmt.Sprintf("SigAlg=%s", pMap["SigAlg"]))
+	sig := []byte(strings.Join(sigparts, "&"))
+	fmt.Println("REQUEST TO SIGN =======")
+	fmt.Println(strings.Join(sigparts, "&"))
+	fmt.Println("REQUEST TO SIGN =======")
+	// Validate the signature
+	switch r.Form.Get("SigAlg") {
+	case "http://www.w3.org/2000/09/xmldsig#dsa-sha1":
+		//return dsa.VerifyPKCS1v15(sp.publicKey.(*dsa.PublicKey), crypto.SHA1, sig, signature)
+		return nil
+	case "http://www.w3.org/2000/09/xmldsig#rsa-sha1":
+		signature, err := base64.StdEncoding.DecodeString(r.Form.Get("Signature"))
+		if err != nil {
+			return err
+		}
+		h := sha1.New()
+		h.Write(sig)
+		sum := h.Sum(nil)
+		return rsa.VerifyPKCS1v15(sp.publicKey.(*rsa.PublicKey), crypto.SHA1, sum, signature)
+	default:
+		return fmt.Errorf("unsupported signature algorithm, %s", r.Form.Get("SigAlg"))
+	}
+}
 
 func (i *IDP) DefaultRedirectSSOHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -55,7 +139,13 @@ func (i *IDP) DefaultRedirectSSOHandler() http.HandlerFunc {
 			// Read the XML
 			decoder := xml.NewDecoder(req)
 			loginReq := &saml.AuthnRequest{}
-			err = decoder.Decode(loginReq)
+			if err = decoder.Decode(loginReq); err != nil {
+				return err
+			}
+
+			if err = i.validateRequest(loginReq, r); err != nil {
+				return err
+			}
 
 			// create saveable request
 			saveableRequest, err := model.NewAuthnRequest(loginReq, relayState)

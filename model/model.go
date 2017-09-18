@@ -61,13 +61,13 @@ func NewAuthnRequest(src *saml.AuthnRequest, relayState string) (*AuthnRequest, 
 		return nil, err
 	}
 	return &AuthnRequest{
-		AssertionConsumerServiceURL:    src.AssertionConsumerServiceURL,
-		AttributeConsumingServiceIndex: src.AttributeConsumingServiceIndex,
-		Destination:                    src.Destination,
-		ID:                             src.ID,
-		ProtocolBinding:                src.ProtocolBinding,
-		RelayState:                     relayState,
-		IssueInstant:                   t,
-		Issuer:                         src.Issuer,
+		AssertionConsumerServiceURL:   src.AssertionConsumerServiceURL,
+		AssertionConsumerServiceIndex: src.AssertionConsumerServiceIndex,
+		Destination:                   src.Destination,
+		ID:                            src.ID,
+		ProtocolBinding:               src.ProtocolBinding,
+		RelayState:                    relayState,
+		IssueInstant:                  t,
+		Issuer:                        src.Issuer,
 	}, nil
 }

@@ -23,10 +23,12 @@ type ServiceProvider struct {
 	EntityID                  string
 	AssertionConsumerServices []AssertionConsumerService
 	Certificate               string
+	// Could be an RSA or DSA public key
+	publicKey interface{}
 }
 
 type AssertionConsumerService struct {
-	Index     uint
+	Index     uint32
 	IsDefault bool
 	Binding   string
 	Location  string

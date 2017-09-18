@@ -23,10 +23,10 @@ import (
 
 type AuthnRequest struct {
 	RequestAbstractType
-	XMLName                        xml.Name `xml:"urn:oasis:names:tc:SAML:2.0:protocol AuthnRequest"`
-	AssertionConsumerServiceURL    string   `xml:",attr"`
-	ProtocolBinding                string   `xml:",attr"`
-	AttributeConsumingServiceIndex string
+	XMLName                       xml.Name `xml:"urn:oasis:names:tc:SAML:2.0:protocol AuthnRequest"`
+	AssertionConsumerServiceURL   string   `xml:",attr"`
+	ProtocolBinding               string   `xml:",attr"`
+	AssertionConsumerServiceIndex uint32   `xml:",attr"`
 }
 
 type ArtifactResolveEnvelope struct {

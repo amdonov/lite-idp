@@ -44,6 +44,7 @@ func (i *IDP) DefaultMetadataHandler() (http.HandlerFunc, error) {
 		IDPSSODescriptor: saml.IDPSSODescriptor{
 			ProtocolSupportEnumeration: "urn:oasis:names:tc:SAML:2.0:protocol",
 			KeyDescriptor:              keyDescriptor,
+			WantAuthnRequestsSigned:    true,
 			ArtifactResolutionService: saml.ArtifactResolutionService{
 				Service: saml.Service{
 					Binding:  "urn:oasis:names:tc:SAML:2.0:bindings:SOAP",
