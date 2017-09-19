@@ -18,12 +18,15 @@ import (
 	"bytes"
 	"compress/flate"
 	"crypto"
+	"crypto/dsa"
 	"crypto/rsa"
 	"crypto/sha1"
+	"encoding/asn1"
 	"encoding/base64"
 	"encoding/xml"
 	"errors"
 	"fmt"
+	"math/big"
 	"net/http"
 	"net/url"
 	"strings"
@@ -93,22 +96,30 @@ func (i *IDP) validateRequest(request *saml.AuthnRequest, r *http.Request) error
 	}
 	sigparts = append(sigparts, fmt.Sprintf("SigAlg=%s", pMap["SigAlg"]))
 	sig := []byte(strings.Join(sigparts, "&"))
-	fmt.Println("REQUEST TO SIGN =======")
-	fmt.Println(strings.Join(sigparts, "&"))
-	fmt.Println("REQUEST TO SIGN =======")
 	// Validate the signature
+	signature, err := base64.StdEncoding.DecodeString(r.Form.Get("Signature"))
+	if err != nil {
+		return err
+	}
+	h := sha1.New()
+	h.Write(sig)
+	sum := h.Sum(nil)
 	switch r.Form.Get("SigAlg") {
 	case "http://www.w3.org/2000/09/xmldsig#dsa-sha1":
-		//return dsa.VerifyPKCS1v15(sp.publicKey.(*dsa.PublicKey), crypto.SHA1, sig, signature)
+		dsaSig := new(dsaSignature)
+		if rest, err := asn1.Unmarshal(signature, dsaSig); err != nil {
+			return err
+		} else if len(rest) != 0 {
+			return errors.New("trailing data after DSA signature")
+		}
+		if dsaSig.R.Sign() <= 0 || dsaSig.S.Sign() <= 0 {
+			return errors.New("DSA signature contained zero or negative values")
+		}
+		if !dsa.Verify(sp.publicKey.(*dsa.PublicKey), sum, dsaSig.R, dsaSig.S) {
+			return errors.New("DSA verification failure")
+		}
 		return nil
 	case "http://www.w3.org/2000/09/xmldsig#rsa-sha1":
-		signature, err := base64.StdEncoding.DecodeString(r.Form.Get("Signature"))
-		if err != nil {
-			return err
-		}
-		h := sha1.New()
-		h.Write(sig)
-		sum := h.Sum(nil)
 		return rsa.VerifyPKCS1v15(sp.publicKey.(*rsa.PublicKey), crypto.SHA1, sum, signature)
 	default:
 		return fmt.Errorf("unsupported signature algorithm, %s", r.Form.Get("SigAlg"))
@@ -201,4 +212,8 @@ func (i *IDP) DefaultRedirectSSOHandler() http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 		}
 	}
+}
+
+type dsaSignature struct {
+	R, S *big.Int
 }
