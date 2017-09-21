@@ -81,10 +81,10 @@ func (sp *serviceProvider) resolveArtifact(artifact string) (*saml.Assertion, er
 	if err != nil {
 		return nil, err
 	}
+	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("unexpected status code from artifact resolve request %d", resp.StatusCode)
 	}
-	defer resp.Body.Close()
 	decoder := xml.NewDecoder(resp.Body)
 	response := &saml.ArtifactResponseEnvelope{}
 	err = decoder.Decode(response)
