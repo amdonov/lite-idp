@@ -18,6 +18,7 @@ import (
 	"crypto/tls"
 	"net/http"
 	"text/template"
+	"time"
 
 	"github.com/amdonov/lite-idp/store"
 	"github.com/amdonov/xmlsig"
@@ -34,6 +35,7 @@ type Configuration struct {
 	AssertionConsumerServiceURL string
 	IDPRedirectEndpoint         string
 	IDPArtifactEndpoint         string
+	Timeout                     time.Duration
 	TLSConfig                   *tls.Config
 	Cache                       store.Cache
 }
@@ -54,6 +56,7 @@ func New(conf Configuration) (ServiceProvider, error) {
 		requestTemplate: templ,
 		signer:          signer,
 		client: &http.Client{
+			Timeout: conf.Timeout,
 			Transport: &http.Transport{
 				TLSClientConfig: conf.TLSConfig,
 			}},
