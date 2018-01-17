@@ -47,7 +47,7 @@ func (sp *serviceProvider) MetadataFunc() (http.HandlerFunc, error) {
 			KeyDescriptor: saml.KeyDescriptor{
 				Use: "signing",
 				KeyInfo: xmlsig.KeyInfo{
-					X509Data: xmlsig.X509Data{
+					X509Data: &xmlsig.X509Data{
 						X509Certificate: base64.StdEncoding.EncodeToString(certData),
 					},
 				},

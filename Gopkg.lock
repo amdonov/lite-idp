@@ -2,16 +2,19 @@
 
 
 [[projects]]
-  branch = "master"
   name = "github.com/allegro/bigcache"
-  packages = [".","queue"]
-  revision = "62de4dac703d67c7309f0ec1c220371b01ac235b"
+  packages = [
+    ".",
+    "queue"
+  ]
+  revision = "aa76879d59fa5d93c43680238227dbf7a53f5c28"
+  version = "v1.0.0"
 
 [[projects]]
   branch = "master"
   name = "github.com/amdonov/xmlsig"
   packages = ["."]
-  revision = "dbf3468a3267b5ff67843cb3f61f5fb04b4a9753"
+  revision = "3414554a5d6b3001c65d8b69d6b96805019b6ceb"
 
 [[projects]]
   branch = "master"
@@ -22,14 +25,20 @@
 [[projects]]
   name = "github.com/fsnotify/fsnotify"
   packages = ["."]
-  revision = "629574ca2a5df945712d3079857300b5e4da0236"
-  version = "v1.4.2"
+  revision = "c2828203cd70a50dcccfb2761f8b1f8ceef9a8e9"
+  version = "v1.4.7"
 
 [[projects]]
   branch = "master"
   name = "github.com/golang/protobuf"
-  packages = ["proto","ptypes","ptypes/any","ptypes/duration","ptypes/timestamp"]
-  revision = "11b8df160996e00fd4b55cbaafb3d84ec6d50fa8"
+  packages = [
+    "proto",
+    "ptypes",
+    "ptypes/any",
+    "ptypes/duration",
+    "ptypes/timestamp"
+  ]
+  revision = "1e59b77b52bf8e4b449a57e6f79f21226d571845"
 
 [[projects]]
   name = "github.com/google/uuid"
@@ -40,14 +49,25 @@
 [[projects]]
   name = "github.com/gorilla/handlers"
   packages = ["."]
-  revision = "a4043c62cc2329bacda331d33fc908ab11ef0ec3"
-  version = "v1.2.1"
+  revision = "90663712d74cb411cbef281bc1e08c19d1a76145"
+  version = "v1.3.0"
 
 [[projects]]
   branch = "master"
   name = "github.com/hashicorp/hcl"
-  packages = [".","hcl/ast","hcl/parser","hcl/printer","hcl/scanner","hcl/strconv","hcl/token","json/parser","json/scanner","json/token"]
-  revision = "8f6b1344a92ff8877cf24a5de9177bf7d0a2a187"
+  packages = [
+    ".",
+    "hcl/ast",
+    "hcl/parser",
+    "hcl/printer",
+    "hcl/scanner",
+    "hcl/strconv",
+    "hcl/token",
+    "json/parser",
+    "json/scanner",
+    "json/token"
+  ]
+  revision = "23c074d0eceb2b8a5bfdbb271ab780cde70f05a8"
 
 [[projects]]
   name = "github.com/inconshreveable/mousetrap"
@@ -64,8 +84,8 @@
 [[projects]]
   name = "github.com/magiconair/properties"
   packages = ["."]
-  revision = "be5ece7dd465ab0765a9682137865547526d1dfb"
-  version = "v1.7.3"
+  revision = "d419a98cdbed11a922bf76f257b7c4be79b50e73"
+  version = "v1.7.4"
 
 [[projects]]
   branch = "master"
@@ -77,31 +97,28 @@
   branch = "master"
   name = "github.com/mitchellh/mapstructure"
   packages = ["."]
-  revision = "d0303fe809921458f417bcf828397a65db30a7e4"
-
-[[projects]]
-  name = "github.com/pelletier/go-buffruneio"
-  packages = ["."]
-  revision = "c37440a7cf42ac63b919c752ca73a85067e05992"
-  version = "v0.2.0"
+  revision = "b4575eea38cca1123ec2dc90c26529b5c5acfcff"
 
 [[projects]]
   name = "github.com/pelletier/go-toml"
   packages = ["."]
-  revision = "5ccdfb18c776b740aecaf085c4d9a2779199c279"
-  version = "v1.0.0"
+  revision = "16398bac157da96aa88f98a2df640c7f32af1da2"
+  version = "v1.0.1"
 
 [[projects]]
   name = "github.com/sirupsen/logrus"
   packages = ["."]
-  revision = "f006c2ac4710855cf0f916dd6b77acf6b048dc6e"
-  version = "v1.0.3"
+  revision = "d682213848ed68c0a260ca37d6dd5ace8423f5ba"
+  version = "v1.0.4"
 
 [[projects]]
-  branch = "master"
   name = "github.com/spf13/afero"
-  packages = [".","mem"]
-  revision = "36f8810e2e3d7eeac4ac05b57f65690fbfba62a2"
+  packages = [
+    ".",
+    "mem"
+  ]
+  revision = "bb8f1927f2a9d3ab41c9340aa034f6b803f4359c"
+  version = "v1.0.2"
 
 [[projects]]
   name = "github.com/spf13/cast"
@@ -110,16 +127,16 @@
   version = "v1.1.0"
 
 [[projects]]
-  branch = "master"
   name = "github.com/spf13/cobra"
   packages = ["."]
-  revision = "2df9a531813370438a4d79bfc33e21f58063ed87"
+  revision = "7b2c5ac9fc04fc5efafb60700713d4fa609b777b"
+  version = "v0.0.1"
 
 [[projects]]
   branch = "master"
   name = "github.com/spf13/jwalterweatherman"
   packages = ["."]
-  revision = "0efa5202c04663c757d84f90f5219c1250baf94f"
+  revision = "7c0cea34c8ece3fbeb2b27ab9b59511d360fb394"
 
 [[projects]]
   name = "github.com/spf13/pflag"
@@ -131,35 +148,49 @@
   branch = "master"
   name = "github.com/theherk/viper"
   packages = ["."]
-  revision = "1c64bdc5d63b5e58e48d1d1b4928fc9cf735c399"
+  revision = "e0502e82247dc662b1e65f76039989bda914cfad"
 
 [[projects]]
   branch = "master"
   name = "golang.org/x/crypto"
-  packages = ["bcrypt","blowfish","ssh/terminal"]
-  revision = "81e90905daefcd6fd217b62423c0908922eadb30"
+  packages = [
+    "bcrypt",
+    "blowfish",
+    "ssh/terminal"
+  ]
+  revision = "13931e22f9e72ea58bb73048bc752b48c6d4d4ac"
 
 [[projects]]
   branch = "master"
   name = "golang.org/x/sys"
-  packages = ["unix","windows"]
-  revision = "ab9e364efd8b52800ff7ee48a9ffba4e0ed78dfb"
+  packages = [
+    "unix",
+    "windows"
+  ]
+  revision = "2c42eef0765b9837fbdab12011af7830f55f88f0"
 
 [[projects]]
   branch = "master"
   name = "golang.org/x/text"
-  packages = ["internal/gen","internal/triegen","internal/ucd","transform","unicode/cldr","unicode/norm"]
-  revision = "18c65dde6afd36dbc39197ca72008895b8dfbfb6"
+  packages = [
+    "internal/gen",
+    "internal/triegen",
+    "internal/ucd",
+    "transform",
+    "unicode/cldr",
+    "unicode/norm"
+  ]
+  revision = "e19ae1496984b1c655b8044a65c0300a3c878dd3"
 
 [[projects]]
   branch = "v2"
   name = "gopkg.in/yaml.v2"
   packages = ["."]
-  revision = "eb3733d160e74a9c7e442f435eb3bea458e1d19f"
+  revision = "d670f9405373e636a5a2765eea47fac0c9bc91a4"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "faf88b4b0b6ff6c25050ba7e7311ba7d8efd53bb32c3dc38e5335dfd48212da6"
+  inputs-digest = "480bab1887c706ddf024993821d7bba9e46a06b7524044d592d88eaa8b7cb567"
   solver-name = "gps-cdcl"
   solver-version = 1

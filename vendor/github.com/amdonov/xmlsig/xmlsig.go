@@ -82,7 +82,8 @@ func (s *signer) CreateSignature(data interface{}) (*Signature, error) {
 		return nil, err
 	}
 	signature.SignatureValue = sig
-	signature.KeyInfo.X509Data.X509Certificate = s.cert
+	x509Data := &X509Data{X509Certificate: s.cert}
+	signature.KeyInfo.X509Data = x509Data
 	return signature, nil
 }
 
@@ -99,7 +100,8 @@ func (s *signer) Sign(data []byte) (string, error) {
 
 func newSignature() *Signature {
 	signature := &Signature{}
-	signature.SignedInfo.CanonicalizationMethod.Algorithm = "http://www.w3.org/TR/2001/REC-xml-c14n-20010315"
+	signature.SignedInfo.CanonicalizationMethod.Algorithm =
+		"http://www.w3.org/2001/10/xml-exc-c14n#"
 	transforms := &signature.SignedInfo.Reference.Transforms.Transform
 	*transforms = append(*transforms, Algorithm{"http://www.w3.org/2000/09/xmldsig#enveloped-signature"})
 	*transforms = append(*transforms, Algorithm{"http://www.w3.org/2001/10/xml-exc-c14n#"})

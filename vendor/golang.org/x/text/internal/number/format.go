@@ -16,6 +16,13 @@ import (
 // - allow user-defined superscript notation (such as <sup>4</sup>)
 // - same for non-breaking spaces, like &nbsp;
 
+// A VisibleDigits computes digits, comma placement and trailing zeros as they
+// will be shown to the user.
+type VisibleDigits interface {
+	Digits(buf []byte, t language.Tag, scale int) Digits
+	// TODO: Do we also need to add the verb or pass a format.State?
+}
+
 // Formatting proceeds along the following lines:
 // 0) Compose rounding information from format and context.
 // 1) Convert a number into a Decimal.
@@ -56,12 +63,16 @@ func (f *Formatter) InitDecimal(t language.Tag) {
 // given language.
 func (f *Formatter) InitScientific(t language.Tag) {
 	f.init(t, tagToScientific)
+	f.Pattern.MinFractionDigits = 0
+	f.Pattern.MaxFractionDigits = -1
 }
 
 // InitEngineering initializes a Formatter using the default Pattern for the
 // given language.
 func (f *Formatter) InitEngineering(t language.Tag) {
 	f.init(t, tagToScientific)
+	f.Pattern.MinFractionDigits = 0
+	f.Pattern.MaxFractionDigits = -1
 	f.Pattern.MaxIntegerDigits = 3
 	f.Pattern.MinIntegerDigits = 1
 }
@@ -150,48 +161,47 @@ func decimalVisibleDigits(r RoundingContext, d *Decimal) Digits {
 	}
 	n := Digits{digits: d.normalize().digits}
 
-	if maxSig := int(r.MaxSignificantDigits); maxSig > 0 {
-		// TODO: really round to zero?
-		n.round(ToZero, maxSig)
-	}
-	digits := n.Digits
 	exp := n.Exp
 	exp += int32(r.DigitShift)
 
 	// Cap integer digits. Remove *most-significant* digits.
 	if r.MaxIntegerDigits > 0 {
 		if p := int(exp) - int(r.MaxIntegerDigits); p > 0 {
-			if p > len(digits) {
-				p = len(digits)
+			if p > len(n.Digits) {
+				p = len(n.Digits)
 			}
-			if digits = digits[p:]; len(digits) == 0 {
+			if n.Digits = n.Digits[p:]; len(n.Digits) == 0 {
 				exp = 0
 			} else {
 				exp -= int32(p)
 			}
 			// Strip leading zeros.
-			for len(digits) > 0 && digits[0] == 0 {
-				digits = digits[1:]
+			for len(n.Digits) > 0 && n.Digits[0] == 0 {
+				n.Digits = n.Digits[1:]
 				exp--
 			}
 		}
 	}
 
-	// Rounding usually is done by convert, but we don't rely on it.
-	numFrac := len(digits) - int(exp)
-	if r.MaxSignificantDigits == 0 && int(r.MaxFractionDigits) < numFrac {
-		p := int(exp) + int(r.MaxFractionDigits)
-		if p <= 0 {
-			p = 0
-		} else if p >= len(digits) {
-			p = len(digits)
-		}
-		digits = digits[:p] // TODO: round
+	// Rounding if not already done by Convert.
+	p := len(n.Digits)
+	if maxSig := int(r.MaxSignificantDigits); maxSig > 0 {
+		p = maxSig
 	}
+	if maxFrac := int(r.MaxFractionDigits); maxFrac >= 0 {
+		if cap := int(exp) + maxFrac; cap < p {
+			p = int(exp) + maxFrac
+		}
+		if p < 0 {
+			p = 0
+		}
+	}
+	n.round(r.Mode, p)
 
 	// set End (trailing zeros)
-	n.End = int32(len(digits))
-	if len(digits) == 0 {
+	n.End = int32(len(n.Digits))
+	if n.End == 0 {
+		exp = 0
 		if r.MinFractionDigits > 0 {
 			n.End = int32(r.MinFractionDigits)
 		}
@@ -206,7 +216,6 @@ func decimalVisibleDigits(r RoundingContext, d *Decimal) Digits {
 			n.End = int32(r.MinSignificantDigits)
 		}
 	}
-	n.Digits = digits
 	n.Exp = exp
 	return n
 }
@@ -303,13 +312,6 @@ func scientificVisibleDigits(r RoundingContext, d *Decimal) Digits {
 	if numInt == 0 {
 		numInt = 1
 	}
-	maxSig := int(r.MaxFractionDigits) + numInt
-	minSig := int(r.MinFractionDigits) + numInt
-
-	if maxSig > 0 {
-		// TODO: really round to zero?
-		n.round(ToZero, maxSig)
-	}
 
 	// If a maximum number of integers is specified, the minimum must be 1
 	// and the exponent is grouped by this number (e.g. for engineering)
@@ -326,10 +328,19 @@ func scientificVisibleDigits(r RoundingContext, d *Decimal) Digits {
 		numInt += d
 	}
 
+	p := len(n.Digits)
+	if maxSig := int(r.MaxSignificantDigits); maxSig > 0 {
+		p = maxSig
+	}
+	if maxFrac := int(r.MaxFractionDigits); maxFrac >= 0 && numInt+maxFrac < p {
+		p = numInt + maxFrac
+	}
+	n.round(r.Mode, p)
+
 	n.Comma = uint8(numInt)
 	n.End = int32(len(n.Digits))
-	if n.End < int32(minSig) {
-		n.End = int32(minSig)
+	if minSig := int32(r.MinFractionDigits) + int32(numInt); n.End < minSig {
+		n.End = minSig
 	}
 	return n
 }

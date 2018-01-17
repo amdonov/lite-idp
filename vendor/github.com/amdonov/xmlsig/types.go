@@ -46,7 +46,8 @@ type Transforms struct {
 // KeyInfo is an optional element that enables the recipient(s) to obtain the key needed to validate the signature.
 type KeyInfo struct {
 	XMLName  xml.Name `xml:"http://www.w3.org/2000/09/xmldsig# KeyInfo"`
-	X509Data X509Data
+	X509Data *X509Data
+	Children []interface{}
 }
 
 // X509Data element within KeyInfo contains one an X509 certificate

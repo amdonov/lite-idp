@@ -375,6 +375,24 @@ func (d *Decimal) ConvertFloat(r RoundingContext, x float64, size int) {
 		d.NaN = true
 		return
 	}
+	// Simple case: decimal notation
+	if r.Increment > 0 {
+		scale := int(r.IncrementScale)
+		mult := 1.0
+		if scale > len(scales) {
+			mult = math.Pow(10, float64(scale))
+		} else {
+			mult = scales[scale]
+		}
+		// We multiply x instead of dividing inc as it gives less rounding
+		// issues.
+		x *= mult
+		x /= float64(r.Increment)
+		x = r.Mode.roundFloat(x)
+		x *= float64(r.Increment)
+		x /= mult
+	}
+
 	abs := x
 	if x < 0 {
 		d.Neg = true
@@ -384,64 +402,71 @@ func (d *Decimal) ConvertFloat(r RoundingContext, x float64, size int) {
 		d.Inf = true
 		return
 	}
-	// Simple case: decimal notation
-	scale := r.scale()
-	prec := r.precision()
-	if scale > 0 || r.Increment > 0 || prec == 0 {
-		if scale > len(scales) {
-			x *= math.Pow(10, float64(scale))
-		} else {
-			x *= scales[scale]
+
+	// By default we get the exact decimal representation.
+	verb := byte('g')
+	prec := -1
+	// As the strconv API does not return the rounding accuracy, we can only
+	// round using ToNearestEven.
+	if r.Mode == ToNearestEven {
+		if n := r.RoundSignificantDigits(); n >= 0 {
+			prec = n
+		} else if n = r.RoundFractionDigits(); n >= 0 {
+			prec = n
+			verb = 'f'
 		}
-		if r.Increment > 0 {
-			inc := float64(r.Increment)
-			x /= float64(inc)
-			x = r.Mode.roundFloat(x)
-			x *= inc
-		} else {
-			x = r.Mode.roundFloat(x)
+	} else {
+		// TODO: At this point strconv's rounding is imprecise to the point that
+		// it is not useable for this purpose.
+		// See https://github.com/golang/go/issues/21714
+		// If rounding is requested, we ask for a large number of digits and
+		// round from there to simulate rounding only once.
+		// Ideally we would have strconv export an AppendDigits that would take
+		// a rounding mode and/or return an accuracy. Something like this would
+		// work:
+		// AppendDigits(dst []byte, x float64, base, size, prec int) (digits []byte, exp, accuracy int)
+		hasPrec := r.RoundSignificantDigits() >= 0
+		hasScale := r.RoundFractionDigits() >= 0
+		if hasPrec || hasScale {
+			// prec is the number of mantissa bits plus some extra for safety.
+			// We need at least the number of mantissa bits as decimals to
+			// accurately represent the floating point without rounding, as each
+			// bit requires one more decimal to represent: 0.5, 0.25, 0.125, ...
+			prec = 60
 		}
-		d.fillIntDigits(uint64(math.Abs(x)))
-		d.Exp = int32(len(d.Digits) - scale)
-		return
 	}
 
-	// Nasty case (for non-decimal notation).
-	// Asides from being inefficient, this result is also wrong as it will
-	// apply ToNearestEven rounding regardless of the user setting.
-	// TODO: expose functionality in strconv so we can avoid this hack.
-	//   Something like this would work:
-	//   AppendDigits(dst []byte, x float64, base, size, prec int) (digits []byte, exp, accuracy int)
-	// TODO: This only supports the nearest even rounding mode.
-
-	if prec > 0 {
-		prec--
-	}
-	b := strconv.AppendFloat(d.Digits, abs, 'e', prec, size)
+	b := strconv.AppendFloat(d.Digits[:0], abs, verb, prec, size)
 	i := 0
 	k := 0
-	// No need to check i < len(b) as we always have an 'e'.
-	for {
+	beforeDot := 1
+	for i < len(b) {
 		if c := b[i]; '0' <= c && c <= '9' {
 			b[k] = c - '0'
 			k++
-		} else if c != '.' {
+			d.Exp += int32(beforeDot)
+		} else if c == '.' {
+			beforeDot = 0
+			d.Exp = int32(k)
+		} else {
 			break
 		}
 		i++
 	}
 	d.Digits = b[:k]
-	i += len("e")
-	pSign := i
-	exp := 0
-	for i++; i < len(b); i++ {
-		exp *= 10
-		exp += int(b[i] - '0')
+	if i != len(b) {
+		i += len("e")
+		pSign := i
+		exp := 0
+		for i++; i < len(b); i++ {
+			exp *= 10
+			exp += int(b[i] - '0')
+		}
+		if b[pSign] == '-' {
+			exp = -exp
+		}
+		d.Exp = int32(exp) + 1
 	}
-	if b[pSign] == '-' {
-		exp = -exp
-	}
-	d.Exp = int32(exp) + 1
 }
 
 func (d *Decimal) fillIntDigits(x uint64) {

@@ -1,4 +1,3 @@
-
 # Gopkg.toml example
 #
 # Refer to https://github.com/golang/dep/blob/master/docs/Gopkg.toml.md
@@ -22,8 +21,20 @@
 
 
 [[constraint]]
+  name = "github.com/allegro/bigcache"
+  version = "1.0.0"
+
+[[constraint]]
   branch = "master"
   name = "github.com/amdonov/xmlsig"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/elazarl/go-bindata-assetfs"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/golang/protobuf"
 
 [[constraint]]
   name = "github.com/google/uuid"
@@ -31,7 +42,7 @@
 
 [[constraint]]
   name = "github.com/gorilla/handlers"
-  version = "1.2.1"
+  version = "1.3.0"
 
 [[constraint]]
   name = "github.com/julienschmidt/httprouter"
@@ -42,13 +53,17 @@
   name = "github.com/mitchellh/go-homedir"
 
 [[constraint]]
-  name = "github.com/satori/go.uuid"
-  version = "1.1.0"
+  name = "github.com/sirupsen/logrus"
+  version = "1.0.4"
 
 [[constraint]]
-  name = "github.com/sirupsen/logrus"
-  version = "1.0.3"
+  name = "github.com/spf13/cobra"
+  version = "0.0.1"
 
 [[constraint]]
   branch = "master"
-  name = "github.com/spf13/cobra"
+  name = "github.com/theherk/viper"
+
+[[constraint]]
+  branch = "master"
+  name = "golang.org/x/crypto"
