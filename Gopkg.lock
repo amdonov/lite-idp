@@ -14,7 +14,7 @@
   branch = "master"
   name = "github.com/amdonov/xmlsig"
   packages = ["."]
-  revision = "3414554a5d6b3001c65d8b69d6b96805019b6ceb"
+  revision = "a6e11e6bcb28c6e4aeb2b3de9c92193a220cc18b"
 
 [[projects]]
   branch = "master"
@@ -102,8 +102,8 @@
 [[projects]]
   name = "github.com/pelletier/go-toml"
   packages = ["."]
-  revision = "16398bac157da96aa88f98a2df640c7f32af1da2"
-  version = "v1.0.1"
+  revision = "acdc4509485b587f5e675510c4f2c63e90ff68a8"
+  version = "v1.1.0"
 
 [[projects]]
   name = "github.com/sirupsen/logrus"
@@ -158,7 +158,7 @@
     "blowfish",
     "ssh/terminal"
   ]
-  revision = "13931e22f9e72ea58bb73048bc752b48c6d4d4ac"
+  revision = "39efaea5da11abd5e2b90a435b1f338cdb94619c"
 
 [[projects]]
   branch = "master"
@@ -167,7 +167,7 @@
     "unix",
     "windows"
   ]
-  revision = "2c42eef0765b9837fbdab12011af7830f55f88f0"
+  revision = "af50095a40f9041b3b38960738837185c26e9419"
 
 [[projects]]
   branch = "master"

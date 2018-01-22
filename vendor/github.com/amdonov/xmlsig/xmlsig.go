@@ -5,6 +5,7 @@ import (
 	"crypto"
 	"crypto/rand"
 	"crypto/sha1"
+	"crypto/sha256"
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/base64"
@@ -40,12 +41,12 @@ func NewSigner(cert tls.Certificate) (Signer, error) {
 	case x509.SHA384WithRSA:
 		fallthrough
 	case x509.SHA512WithRSA:
-		alg = "http://www.w3.org/2000/09/xmldsig#rsa-sha1"
+		alg = "http://www.w3.org/2001/04/xmldsig-more#rsa-sha256"
 		break
 	case x509.DSAWithSHA1:
 		fallthrough
 	case x509.DSAWithSHA256:
-		alg = "http://www.w3.org/2000/09/xmldsig#dsa-sha1"
+		alg = "http://www.w3.org/2009/xmldsig11#dsa-sha256"
 		break
 	default:
 		return nil, fmt.Errorf("xmlsig needs some work to support %s certificates", parsedCert.SignatureAlgorithm.String())
@@ -88,10 +89,10 @@ func (s *signer) CreateSignature(data interface{}) (*Signature, error) {
 }
 
 func (s *signer) Sign(data []byte) (string, error) {
-	h := sha1.New()
+	h := sha256.New()
 	h.Write(data)
 	sum := h.Sum(nil)
-	sig, err := s.key.Sign(rand.Reader, sum, crypto.SHA1)
+	sig, err := s.key.Sign(rand.Reader, sum, crypto.SHA256)
 	if err != nil {
 		return "", err
 	}
@@ -105,7 +106,7 @@ func newSignature() *Signature {
 	transforms := &signature.SignedInfo.Reference.Transforms.Transform
 	*transforms = append(*transforms, Algorithm{"http://www.w3.org/2000/09/xmldsig#enveloped-signature"})
 	*transforms = append(*transforms, Algorithm{"http://www.w3.org/2001/10/xml-exc-c14n#"})
-	signature.SignedInfo.Reference.DigestMethod.Algorithm = "http://www.w3.org/2000/09/xmldsig#sha1"
+	signature.SignedInfo.Reference.DigestMethod.Algorithm = "http://www.w3.org/2001/04/xmlenc#sha256"
 	return signature
 }
 
