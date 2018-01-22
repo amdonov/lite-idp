@@ -14,7 +14,7 @@
   branch = "master"
   name = "github.com/amdonov/xmlsig"
   packages = ["."]
-  revision = "a6e11e6bcb28c6e4aeb2b3de9c92193a220cc18b"
+  revision = "6b43854101ae608ab98e850b0b860047bb237b2f"
 
 [[projects]]
   branch = "master"

@@ -4,7 +4,6 @@ package xmlsig
 import (
 	"crypto"
 	"crypto/rand"
-	"crypto/sha1"
 	"crypto/sha256"
 	"crypto/tls"
 	"crypto/x509"
@@ -111,7 +110,7 @@ func newSignature() *Signature {
 }
 
 func digest(data []byte) string {
-	h := sha1.New()
+	h := sha256.New()
 	h.Write(data)
 	sum := h.Sum(nil)
 	return base64.StdEncoding.EncodeToString(sum)

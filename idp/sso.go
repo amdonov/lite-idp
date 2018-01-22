@@ -21,6 +21,7 @@ import (
 	"crypto/dsa"
 	"crypto/rsa"
 	"crypto/sha1"
+	"crypto/sha256"
 	"encoding/asn1"
 	"encoding/base64"
 	"encoding/xml"
@@ -101,29 +102,50 @@ func (i *IDP) validateRequest(request *saml.AuthnRequest, r *http.Request) error
 	if err != nil {
 		return err
 	}
-	h := sha1.New()
-	h.Write(sig)
-	sum := h.Sum(nil)
 	switch r.Form.Get("SigAlg") {
+	case "http://www.w3.org/2009/xmldsig11#dsa-sha256":
+		sum := sha256Sum(sig)
+		return verifyDSA(sp, signature, sum)
 	case "http://www.w3.org/2000/09/xmldsig#dsa-sha1":
-		dsaSig := new(dsaSignature)
-		if rest, err := asn1.Unmarshal(signature, dsaSig); err != nil {
-			return err
-		} else if len(rest) != 0 {
-			return errors.New("trailing data after DSA signature")
-		}
-		if dsaSig.R.Sign() <= 0 || dsaSig.S.Sign() <= 0 {
-			return errors.New("DSA signature contained zero or negative values")
-		}
-		if !dsa.Verify(sp.publicKey.(*dsa.PublicKey), sum, dsaSig.R, dsaSig.S) {
-			return errors.New("DSA verification failure")
-		}
-		return nil
+		sum := sha1Sum(sig)
+		return verifyDSA(sp, signature, sum)
 	case "http://www.w3.org/2000/09/xmldsig#rsa-sha1":
+		sum := sha1Sum(sig)
 		return rsa.VerifyPKCS1v15(sp.publicKey.(*rsa.PublicKey), crypto.SHA1, sum, signature)
+	case "http://www.w3.org/2001/04/xmldsig-more#rsa-sha256":
+		sum := sha256Sum(sig)
+		return rsa.VerifyPKCS1v15(sp.publicKey.(*rsa.PublicKey), crypto.SHA256, sum, signature)
 	default:
 		return fmt.Errorf("unsupported signature algorithm, %s", r.Form.Get("SigAlg"))
 	}
+}
+
+func verifyDSA(sp ServiceProvider, signature, sum []byte) error {
+	dsaSig := new(dsaSignature)
+	if rest, err := asn1.Unmarshal(signature, dsaSig); err != nil {
+		return err
+	} else if len(rest) != 0 {
+		return errors.New("trailing data after DSA signature")
+	}
+	if dsaSig.R.Sign() <= 0 || dsaSig.S.Sign() <= 0 {
+		return errors.New("DSA signature contained zero or negative values")
+	}
+	if !dsa.Verify(sp.publicKey.(*dsa.PublicKey), sum, dsaSig.R, dsaSig.S) {
+		return errors.New("DSA verification failure")
+	}
+	return nil
+}
+
+func sha1Sum(sig []byte) []byte {
+	h := sha1.New()
+	h.Write(sig)
+	return h.Sum(nil)
+}
+
+func sha256Sum(sig []byte) []byte {
+	h := sha256.New()
+	h.Write(sig)
+	return h.Sum(nil)
 }
 
 func (i *IDP) DefaultRedirectSSOHandler() http.HandlerFunc {
