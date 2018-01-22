@@ -116,4 +116,5 @@ type Assertion struct {
 	Conditions         *Conditions
 	AuthnStatement     *AuthnStatement
 	AttributeStatement *AttributeStatement
+	RawXML             string
 }

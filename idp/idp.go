@@ -145,7 +145,10 @@ func (i *IDP) configureCrypto() error {
 		return errors.New("tlsConfig does not contain a certificate")
 	}
 	cert := i.TLSConfig.Certificates[0]
-	signer, err := xmlsig.NewSigner(cert)
+	signer, err := xmlsig.NewSignerWithOptions(cert, xmlsig.SignerOptions{
+		SignatureAlgorithm: viper.GetString("signature-algoritm"),
+		DigestAlgorithm:    viper.GetString("digest-algorithm"),
+	})
 	i.signer = signer
 	return err
 }

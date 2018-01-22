@@ -14,13 +14,13 @@
   branch = "master"
   name = "github.com/amdonov/xmlsig"
   packages = ["."]
-  revision = "6b43854101ae608ab98e850b0b860047bb237b2f"
+  revision = "2dd48e66f8e9f76b41db09776d27079c2b2ebbab"
 
 [[projects]]
-  branch = "master"
   name = "github.com/elazarl/go-bindata-assetfs"
   packages = ["."]
   revision = "30f82fa23fd844bd5bb1e5f216db87fd77b5eb43"
+  version = "v1.0.0"
 
 [[projects]]
   name = "github.com/fsnotify/fsnotify"
@@ -38,7 +38,7 @@
     "ptypes/duration",
     "ptypes/timestamp"
   ]
-  revision = "1e59b77b52bf8e4b449a57e6f79f21226d571845"
+  revision = "c65a0412e71e8b9b3bfd22925720d23c0f054237"
 
 [[projects]]
   name = "github.com/google/uuid"
@@ -158,7 +158,7 @@
     "blowfish",
     "ssh/terminal"
   ]
-  revision = "39efaea5da11abd5e2b90a435b1f338cdb94619c"
+  revision = "d94f6bc902c2970500950e88ab1a54a0c26bec48"
 
 [[projects]]
   branch = "master"

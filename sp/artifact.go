@@ -99,6 +99,7 @@ func (sp *serviceProvider) resolveArtifact(artifact string) (*saml.Assertion, er
 		encoder.Encode(response)
 		return nil, errors.New("check logs assertion was nil")
 	}
+	assertion.RawXML = response.Body.ArtifactResponse.Response.RawAssertion
 	return assertion, nil
 }
 

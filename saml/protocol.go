@@ -64,8 +64,9 @@ type ArtifactResponse struct {
 
 type Response struct {
 	StatusResponseType
-	XMLName   xml.Name `xml:"urn:oasis:names:tc:SAML:2.0:protocol Response"`
-	Assertion *Assertion
+	XMLName      xml.Name `xml:"urn:oasis:names:tc:SAML:2.0:protocol Response"`
+	RawAssertion string   `xml:",innerxml"`
+	Assertion    *Assertion
 }
 
 type Status struct {
