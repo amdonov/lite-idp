@@ -45,11 +45,16 @@ func (sp *serviceProvider) ArtifactFunc(callback ArtifactCallback) http.HandlerF
 			http.Error(w, "identity provider did not return RelayState", http.StatusUnauthorized)
 			return
 		}
-		state, err := sp.stateCache.Get(stateID)
-		if err != nil {
-			log.Info("RelayState not found in cache")
-			http.Error(w, "identity provider did not return RelayState", http.StatusUnauthorized)
-			return
+		var state []byte
+		if sp.stateCache == nil {
+			state = []byte(stateID)
+		} else {
+			state, err = sp.stateCache.Get(stateID)
+			if err != nil {
+				log.Info("RelayState not found in cache")
+				http.Error(w, "identity provider did not return RelayState", http.StatusUnauthorized)
+				return
+			}
 		}
 
 		// call the IdP to get the SAML assertion
