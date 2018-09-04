@@ -35,9 +35,12 @@ type Configuration struct {
 	AssertionConsumerServiceURL string
 	IDPRedirectEndpoint         string
 	IDPArtifactEndpoint         string
-	Timeout                     time.Duration
-	TLSConfig                   *tls.Config
-	Cache                       store.Cache
+	// Optional override of client added for testing
+	// but may have other uses
+	Client    *http.Client
+	Timeout   time.Duration
+	TLSConfig *tls.Config
+	Cache     store.Cache
 }
 
 func New(conf Configuration) (ServiceProvider, error) {
@@ -51,16 +54,20 @@ func New(conf Configuration) (ServiceProvider, error) {
 	if err != nil {
 		return nil, err
 	}
+	client := conf.Client
+	if client == nil {
+		client = &http.Client{
+			Timeout: conf.Timeout,
+			Transport: &http.Transport{
+				TLSClientConfig: conf.TLSConfig,
+			}}
+	}
 	serviceProvider := &serviceProvider{
 		configuration:   conf,
 		requestTemplate: templ,
 		signer:          signer,
-		client: &http.Client{
-			Timeout: conf.Timeout,
-			Transport: &http.Transport{
-				TLSClientConfig: conf.TLSConfig,
-			}},
-		stateCache: conf.Cache,
+		client:          client,
+		stateCache:      conf.Cache,
 	}
 
 	return serviceProvider, nil
