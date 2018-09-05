@@ -31,7 +31,7 @@ import (
 func ServeCmd(indentityProvider *idp.IDP) *cobra.Command {
 	return &cobra.Command{
 		Use:   "serve",
-		Short: "runs lite-idp server",
+		Short: "runs idp server",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// Listen for shutdown signal
 			stop := make(chan os.Signal, 1)

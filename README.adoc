@@ -104,7 +104,22 @@ import "github.com/amdonov/lite-idp/idp"
 ----
 <1> Default IDP struct without configuration
 
-One can examine the struct to see interation points. Some key ones are highlighted below.
+As of version 0.3.0 it's possible to add lite-idp commands
+to another cobra based application and customize the IDP struct as well.
+
+----
+
+import lidp "github.com/amdonov/lite-idp/lite-idp/cmd"
+...
+  rootCmd.AddCommand(lidp.AddCmd)
+	rootCmd.AddCommand(lidp.HashCmd)
+	rootCmd.AddCommand(lidp.ServeCmd(&idp.IDP{
+   // customization here
+	}))
+...  
+----
+
+One can examine the struct to see integration points. Some key ones are highlighted below.
 
 === Password Validation
 
