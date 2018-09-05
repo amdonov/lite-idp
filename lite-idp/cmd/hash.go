@@ -23,8 +23,8 @@ import (
 	"golang.org/x/crypto/ssh/terminal"
 )
 
-// hashCmd represents the hash command
-var hashCmd = &cobra.Command{
+// HashCmd represents the hash command
+var HashCmd = &cobra.Command{
 	Use:   "hash",
 	Short: "hashes a password for use with example user store",
 	RunE: func(cmd *cobra.Command, args []string) error {
@@ -42,8 +42,4 @@ var hashCmd = &cobra.Command{
 		fmt.Println(string(hashedPassword))
 		return nil
 	},
-}
-
-func init() {
-	RootCmd.AddCommand(hashCmd)
 }

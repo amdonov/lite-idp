@@ -20,7 +20,7 @@ import (
 
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
-	"github.com/theherk/viper"
+	"github.com/spf13/viper"
 )
 
 var cfgFile string

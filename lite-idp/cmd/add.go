@@ -18,12 +18,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// addCmd represents the add command
-var addCmd = &cobra.Command{
+// AddCmd represents the add command
+var AddCmd = &cobra.Command{
 	Use:   "add",
 	Short: "add components to the IdP",
-}
-
-func init() {
-	RootCmd.AddCommand(addCmd)
 }

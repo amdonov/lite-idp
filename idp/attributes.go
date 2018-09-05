@@ -16,7 +16,7 @@ package idp
 
 import (
 	"github.com/amdonov/lite-idp/model"
-	"github.com/theherk/viper"
+	"github.com/spf13/viper"
 )
 
 type AttributeSource interface {

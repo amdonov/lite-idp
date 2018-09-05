@@ -22,7 +22,7 @@ import (
 	"net/url"
 	"os"
 
-	"github.com/theherk/viper"
+	"github.com/spf13/viper"
 
 	"github.com/amdonov/lite-idp/idp"
 
@@ -98,5 +98,5 @@ func getReader(fileOrUrl string) (io.ReadCloser, error) {
 }
 
 func init() {
-	addCmd.AddCommand(serviceProviderCmd)
+	AddCmd.AddCommand(serviceProviderCmd)
 }

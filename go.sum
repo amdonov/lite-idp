@@ -37,8 +37,8 @@ github.com/spf13/jwalterweatherman v0.0.0-20180109140146-7c0cea34c8ec h1:2ZXvIUG
 github.com/spf13/jwalterweatherman v0.0.0-20180109140146-7c0cea34c8ec/go.mod h1:cQK4TGJAtQXfYWX+Ddv3mKDzgVb68N+wFjFa4jdeBTo=
 github.com/spf13/pflag v1.0.0 h1:oaPbdDe/x0UncahuwiPxW1GYJyilRAdsPnq3e1yaPcI=
 github.com/spf13/pflag v1.0.0/go.mod h1:DYY7MBk1bdzusC3SYhjObp+wFpr4gzcvqqNjLnInEg4=
-github.com/theherk/viper v0.0.0-20171202031228-e0502e82247d h1:wGCTTEBamFZ4zg10f/9Rynryko5hGNp09MVTcTKSUrI=
-github.com/theherk/viper v0.0.0-20171202031228-e0502e82247d/go.mod h1:Mcw4WQy+5VVZQu1WNgSsDjpnFIPT/DyHZoUy2QoUb7Q=
+github.com/spf13/viper v1.1.0 h1:V7OZpY8i3C1x/pDmU0zNNlfVoDz112fSYvtWMjjS3f4=
+github.com/spf13/viper v1.1.0/go.mod h1:A8kyI5cUJhb8N+3pkfONlcEcZbueH6nhAm0Fq7SrnBM=
 golang.org/x/crypto v0.0.0-20180122213707-d94f6bc902c2 h1:1/2W+4tRQgOyZ0XXb05WJUIkrXTPebnDKs4xpqzs4QQ=
 golang.org/x/crypto v0.0.0-20180122213707-d94f6bc902c2/go.mod h1:6SG95UA2DQfeDnfUPMdvaQW0Q7yPrPDi9nlGo2tz2b4=
 golang.org/x/sys v0.0.0-20180122081959-af50095a40f9 h1:ne3QBDn7ziARHn26Dk8yZ5TB4yf7growSFMsxd8BrGQ=

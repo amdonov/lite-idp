@@ -21,7 +21,7 @@ require (
 	github.com/spf13/cobra v0.0.1
 	github.com/spf13/jwalterweatherman v0.0.0-20180109140146-7c0cea34c8ec
 	github.com/spf13/pflag v1.0.0
-	github.com/theherk/viper v0.0.0-20171202031228-e0502e82247d
+	github.com/spf13/viper v1.1.0
 	golang.org/x/crypto v0.0.0-20180122213707-d94f6bc902c2
 	golang.org/x/sys v0.0.0-20180122081959-af50095a40f9
 	golang.org/x/text v0.0.0-20171227012246-e19ae1496984

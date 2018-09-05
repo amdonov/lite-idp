@@ -78,10 +78,10 @@ NOTE: ECDSA certificates cannot currently be used for signing.
 
 .Running
 ----
-lite-idp --config lite-idp.yaml
+lite-idp serve
 ----
 
-By default lite-idp will look for the configuration file at /etc/lite-idp/lite-idp.yaml. In addition to the configuration file many options can be provided on the command line or via environment variables.
+By default lite-idp will look for the configuration file at /etc/lite-idp/config.yaml and in the config.yaml in the current directory. In addition to the configuration file, many options can be provided via environment variables.
 
 == Customizing
 

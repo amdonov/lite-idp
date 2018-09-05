@@ -30,7 +30,7 @@ import (
 	"github.com/amdonov/lite-idp/ui"
 	"github.com/amdonov/xmlsig"
 	"github.com/julienschmidt/httprouter"
-	"github.com/theherk/viper"
+	"github.com/spf13/viper"
 )
 
 type IDP struct {
