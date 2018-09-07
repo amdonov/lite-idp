@@ -92,8 +92,7 @@ func (sp *serviceProvider) resolveArtifact(artifact string) (*saml.Assertion, er
 	}
 	decoder := xml.NewDecoder(resp.Body)
 	response := &saml.ArtifactResponseEnvelope{}
-	err = decoder.Decode(response)
-	if err != nil {
+	if err := decoder.Decode(response); err != nil {
 		return nil, err
 	}
 	assertion := response.Body.ArtifactResponse.Response.Assertion

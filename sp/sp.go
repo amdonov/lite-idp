@@ -20,11 +20,13 @@ import (
 	"text/template"
 	"time"
 
+	"github.com/amdonov/lite-idp/saml"
 	"github.com/amdonov/lite-idp/store"
 	"github.com/amdonov/xmlsig"
 )
 
 type ServiceProvider interface {
+	Query(nameID string) (*saml.Assertion, error)
 	GetRedirect([]byte) (string, error)
 	MetadataFunc() (http.HandlerFunc, error)
 	ArtifactFunc(callback ArtifactCallback) http.HandlerFunc
@@ -35,6 +37,7 @@ type Configuration struct {
 	AssertionConsumerServiceURL string
 	IDPRedirectEndpoint         string
 	IDPArtifactEndpoint         string
+	IDPQueryEndpoint            string
 	// Optional override of client added for testing
 	// but may have other uses
 	Client    *http.Client
