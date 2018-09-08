@@ -16,6 +16,7 @@ The identity provider has the following features.
 * HTTP POST Binding - responses only not for requests
 * HTTP Artifact Binding
 * SAML Metadata Generation
+* SAML Attribute Query
 * X.509 Certificate Authentication
 * Username/Password Authentication
 

@@ -26,7 +26,7 @@ import (
 
 func (i *IDP) sendPostResponse(authRequest *model.AuthnRequest, user *model.User,
 	w http.ResponseWriter, r *http.Request) error {
-	response := i.makeResponse(authRequest, user)
+	response := i.makeAuthnResponse(authRequest, user)
 	// Don't need to change the response. Go ahead and sign it
 	signature, err := i.signer.CreateSignature(response.Assertion)
 	if err != nil {

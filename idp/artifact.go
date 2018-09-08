@@ -57,7 +57,7 @@ func (i *IDP) DefaultArtifactResolveHandler() http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		response := i.makeResponse(artifactResponse.Request, artifactResponse.User)
+		response := i.makeAuthnResponse(artifactResponse.Request, artifactResponse.User)
 		artResponseEnv := saml.ArtifactResponseEnvelope{}
 		artResponse := &artResponseEnv.Body.ArtifactResponse
 		artResponse.ID = saml.NewID()

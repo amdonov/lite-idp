@@ -49,6 +49,7 @@ type IDP struct {
 	ArtifactResolveHandler http.HandlerFunc
 	RedirectSSOHandler     http.HandlerFunc
 	PasswordLoginHandler   http.HandlerFunc
+	QueryHandler http.HandlerFunc
 
 	handler http.Handler
 	signer  xmlsig.Signer
@@ -226,6 +227,12 @@ func (i *IDP) buildRoutes() error {
 		i.PasswordLoginHandler = i.DefaultPasswordLoginHandler()
 	}
 	r.HandlerFunc("POST", "/ui/login.html", i.PasswordLoginHandler)
+
+	// Handle attribute query
+	if i.QueryHandler == nil {
+		i.QueryHandler = i.DefaultQueryHandler()
+	}
+	r.HandlerFunc("POST", viper.GetString("attribute-service-path"), i.QueryHandler)
 
 	// Serve up UI
 	userInterface := ui.UI()

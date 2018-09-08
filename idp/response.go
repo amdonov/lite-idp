@@ -57,7 +57,34 @@ func (i *IDP) respond(authRequest *model.AuthnRequest, user *model.User,
 	}
 }
 
-func (i *IDP) makeResponse(authRequest *model.AuthnRequest, user *model.User) *saml.Response {
+func (i *IDP) makeAuthnResponse(request *model.AuthnRequest, user *model.User) *saml.Response {
+	now := time.Now()
+	fiveFromNow := now.Add(5 * time.Minute)
+	resp := i.makeResponse(request.ID, request.Issuer, user)
+	// Add subject confirmation data and authentication statement
+	resp.Assertion.AuthnStatement = &saml.AuthnStatement{
+		AuthnInstant: now,
+		SessionIndex: saml.NewID(),
+		SubjectLocality: &saml.SubjectLocality{
+			DNSName: i.serverName,
+		},
+		AuthnContext: &saml.AuthnContext{
+			AuthnContextClassRef: user.Context,
+		},
+	}
+	resp.Assertion.Subject.SubjectConfirmation = &saml.SubjectConfirmation{
+		Method: "urn:oasis:names:tc:SAML:2.0:cm:bearer",
+		SubjectConfirmationData: &saml.SubjectConfirmationData{
+			Address:      net.ParseIP(user.IP),
+			InResponseTo: request.ID,
+			Recipient:    request.AssertionConsumerServiceURL,
+			NotOnOrAfter: fiveFromNow,
+		},
+	}
+	return resp
+}
+
+func (i *IDP) makeResponse(id, issuer string, user *model.User) *saml.Response {
 	now := time.Now()
 	fiveFromNow := now.Add(5 * time.Minute)
 	s := &saml.Response{
@@ -70,7 +97,7 @@ func (i *IDP) makeResponse(authRequest *model.AuthnRequest, user *model.User) *s
 					Value: "urn:oasis:names:tc:SAML:2.0:status:Success",
 				},
 			},
-			InResponseTo: authRequest.ID,
+			InResponseTo: id,
 			Issuer:       saml.NewIssuer(i.entityID),
 		},
 		Assertion: &saml.Assertion{
@@ -82,27 +109,11 @@ func (i *IDP) makeResponse(authRequest *model.AuthnRequest, user *model.User) *s
 				NameID: &saml.NameID{
 					Format:          user.Format,
 					NameQualifier:   i.entityID,
-					SPNameQualifier: authRequest.Issuer,
+					SPNameQualifier: issuer,
 					Value:           user.Name,
 				},
 				SubjectConfirmation: &saml.SubjectConfirmation{
-					Method: "urn:oasis:names:tc:SAML:2.0:cm:bearer",
-					SubjectConfirmationData: &saml.SubjectConfirmationData{
-						Address:      net.ParseIP(user.IP),
-						InResponseTo: authRequest.ID,
-						Recipient:    authRequest.AssertionConsumerServiceURL,
-						NotOnOrAfter: fiveFromNow,
-					},
-				},
-			},
-			AuthnStatement: &saml.AuthnStatement{
-				AuthnInstant: now,
-				SessionIndex: saml.NewID(),
-				SubjectLocality: &saml.SubjectLocality{
-					DNSName: i.serverName,
-				},
-				AuthnContext: &saml.AuthnContext{
-					AuthnContextClassRef: user.Context,
+					Method: "urn:oasis:names:tc:SAML:2.0:cm:sender-vouches",
 				},
 			},
 			AttributeStatement: user.AttributeStatement(),
@@ -110,7 +121,7 @@ func (i *IDP) makeResponse(authRequest *model.AuthnRequest, user *model.User) *s
 				NotOnOrAfter: fiveFromNow,
 				NotBefore:    now,
 				AudienceRestriction: &saml.AudienceRestriction{
-					Audience: authRequest.Issuer,
+					Audience: issuer,
 				},
 			},
 		},
