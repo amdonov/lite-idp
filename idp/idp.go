@@ -32,6 +32,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 	"github.com/spf13/viper"
 )
+
 // IDP is the main data structure for the IDP. Public members can be used to alter behavior. Otherwise defaults are fine.
 type IDP struct {
 	// You can include other routes by providing a router or

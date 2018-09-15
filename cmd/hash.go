@@ -33,8 +33,7 @@ var HashCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		// Hashing the password with the default cost of 10
-		hashedPassword, err := bcrypt.GenerateFromPassword(bytePassword, bcrypt.DefaultCost)
+		hashedPassword, err := hashPassword(bytePassword)
 		if err != nil {
 			return err
 		}
@@ -42,4 +41,10 @@ var HashCmd = &cobra.Command{
 		fmt.Println(string(hashedPassword))
 		return nil
 	},
+}
+
+func hashPassword(src []byte) (string, error) {
+	// Hashing the password with the default cost of 10
+	hashedPassword, err := bcrypt.GenerateFromPassword(src, bcrypt.DefaultCost)
+	return string(hashedPassword), err
 }

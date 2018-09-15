@@ -55,6 +55,7 @@ func (u *User) AttributeStatement() *saml.AttributeStatement {
 	return stmt
 }
 
+// NewAuthnRequest creates a protobuf object from XML-derived struct
 func NewAuthnRequest(src *saml.AuthnRequest, relayState string) (*AuthnRequest, error) {
 	t, err := ptypes.TimestampProto(src.IssueInstant)
 	if err != nil {
