@@ -31,6 +31,6 @@ func init() {
 	viper.SetDefault("attribute-service-path", "/SAML2/SOAP/AttributeQuery")
 	viper.SetDefault("temp-cache-duration", "5m")
 	viper.SetDefault("user-cache-duration", "8h")
-	viper.SetDefault("signature-algoritm", "")
-	viper.SetDefault("digest-algoritm", "http://www.w3.org/2001/04/xmlenc#sha256")
+	viper.SetDefault("signature-algorithm", "")
+	viper.SetDefault("digest-algorithm", "http://www.w3.org/2001/04/xmlenc#sha256")
 }

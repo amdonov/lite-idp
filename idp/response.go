@@ -129,7 +129,7 @@ func (i *IDP) makeResponse(id, issuer string, user *model.User) *saml.Response {
 	return s
 }
 
-func getArtifact(entityId string) string {
+func getArtifact(entityID string) string {
 	// The artifact isn't just a random session id. It's a base64-encoded byte array
 	// that's 44 bytes in length. The first two bytes must be 04 for SAML 2. The second
 	// two bytes are the index of the artifact resolution endpoint in the IdP metadata. Something like 02
@@ -141,7 +141,7 @@ func getArtifact(entityId string) string {
 	// Index 1
 	artifact[3] = byte(1)
 	// Hash of entity ID
-	source := sha1.Sum([]byte(entityId))
+	source := sha1.Sum([]byte(entityID))
 	for i := 4; i < 24; i++ {
 		artifact[i] = source[i-4]
 	}

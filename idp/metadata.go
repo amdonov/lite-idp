@@ -24,6 +24,7 @@ import (
 	"github.com/amdonov/xmlsig"
 )
 
+// DefaultMetadataHandler is the default implementation for the metadata display handler. It can be used as is, wrapped in other handlers, or replaced completely.
 func (i *IDP) DefaultMetadataHandler() (http.HandlerFunc, error) {
 	certData := i.TLSConfig.Certificates[0].Certificate[0]
 	keyDescriptor := saml.KeyDescriptor{

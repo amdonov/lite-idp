@@ -10,6 +10,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// DefaultQueryHandler is the default implementation for the attribute query handler. It can be used as is, wrapped in other handlers, or replaced completely.
 func (i *IDP) DefaultQueryHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		err := func() error {
@@ -66,13 +67,14 @@ func (i *IDP) DefaultQueryHandler() http.HandlerFunc {
 				return err
 			}
 			resp.Assertion.Signature = signature
-			// TODO handle these errors. Probably can't do anything besides log, as we've already started to write the
-			// response.
-			_, err = w.Write([]byte(xml.Header))
+			if _, err = w.Write([]byte(xml.Header)); err != nil {
+				return err
+			}
 			encoder := xml.NewEncoder(w)
-			err = encoder.Encode(env)
-			err = encoder.Flush()
-			return nil
+			if err = encoder.Encode(env); err != nil {
+				return err
+			}
+			return encoder.Flush()
 		}()
 		if err != nil {
 			log.Error(err)

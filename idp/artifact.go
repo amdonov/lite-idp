@@ -26,6 +26,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// DefaultArtifactResolveHandler is the default implementation for the artifact resolution handler. It can be used as is, wrapped in other handlers, or replaced completely.
 func (i *IDP) DefaultArtifactResolveHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// We require transport authentication rather than message authentication

@@ -36,7 +36,7 @@ func (sp *serviceProvider) MetadataFunc() (http.HandlerFunc, error) {
 			AuthnRequestsSigned:        true,
 			ProtocolSupportEnumeration: "urn:oasis:names:tc:SAML:2.0:protocol",
 			AssertionConsumerService: []saml.AssertionConsumerService{
-				saml.AssertionConsumerService{
+				{
 					IsDefault: true,
 					Service: saml.Service{
 						Binding:  "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Artifact",

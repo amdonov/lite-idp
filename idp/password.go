@@ -31,6 +31,7 @@ import (
 // the account doesn't exist or the password is incorrect.
 var ErrInvalidPassword = errors.New("invalid login or password")
 
+// PasswordValidator validates a user's password
 type PasswordValidator interface {
 	Validate(user, password string) error
 }
@@ -39,6 +40,7 @@ type simpleValidator struct {
 	users map[string][]byte
 }
 
+// UserPassword holds a user and their associated password.
 type UserPassword struct {
 	Name     string
 	Password string
@@ -55,6 +57,7 @@ func (sv *simpleValidator) Validate(user, password string) error {
 	return ErrInvalidPassword
 }
 
+// NewValidator returns a sample validator that compares passwords to the bcrypt stored values for a user's password defined in the users key of the IDP's configuration
 func NewValidator() (PasswordValidator, error) {
 	passwords := []UserPassword{}
 	err := viper.UnmarshalKey("users", &passwords)
@@ -68,6 +71,7 @@ func NewValidator() (PasswordValidator, error) {
 	return &simpleValidator{users}, nil
 }
 
+// DefaultPasswordLoginHandler is the default implementation for the password login handler. It can be used as is, wrapped in other handlers, or replaced completely.
 func (i *IDP) DefaultPasswordLoginHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		err := func() error {
@@ -75,8 +79,8 @@ func (i *IDP) DefaultPasswordLoginHandler() http.HandlerFunc {
 			if err != nil {
 				return err
 			}
-			requestId := r.Form.Get("requestId")
-			data, err := i.TempCache.Get(requestId)
+			requestID := r.Form.Get("requestId")
+			data, err := i.TempCache.Get(requestID)
 			if err != nil {
 				return err
 			}
@@ -90,7 +94,7 @@ func (i *IDP) DefaultPasswordLoginHandler() http.HandlerFunc {
 			if err != nil {
 				if err == ErrInvalidPassword {
 					http.Redirect(w, r, fmt.Sprintf("/ui/login.html?requestId=%s&error=%s",
-						url.QueryEscape(requestId), url.QueryEscape("Invalid login or password. Please try again.")),
+						url.QueryEscape(requestID), url.QueryEscape("Invalid login or password. Please try again.")),
 						http.StatusFound)
 					return nil
 				}

@@ -32,7 +32,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 	"github.com/spf13/viper"
 )
-
+// IDP is the main data structure for the IDP. Public members can be used to alter behavior. Otherwise defaults are fine.
 type IDP struct {
 	// You can include other routes by providing a router or
 	// one will be created. Alternatively, you can add routes and
@@ -49,7 +49,7 @@ type IDP struct {
 	ArtifactResolveHandler http.HandlerFunc
 	RedirectSSOHandler     http.HandlerFunc
 	PasswordLoginHandler   http.HandlerFunc
-	QueryHandler http.HandlerFunc
+	QueryHandler           http.HandlerFunc
 
 	handler http.Handler
 	signer  xmlsig.Signer
@@ -65,6 +65,7 @@ type IDP struct {
 	sps                               map[string]ServiceProvider
 }
 
+// Handler returns the IDP's http.Handler including all sub routes or an error
 func (i *IDP) Handler() (http.Handler, error) {
 	if i.handler == nil {
 		if err := i.configureConstants(); err != nil {
@@ -147,7 +148,7 @@ func (i *IDP) configureCrypto() error {
 	}
 	cert := i.TLSConfig.Certificates[0]
 	signer, err := xmlsig.NewSignerWithOptions(cert, xmlsig.SignerOptions{
-		SignatureAlgorithm: viper.GetString("signature-algoritm"),
+		SignatureAlgorithm: viper.GetString("signature-algorithm"),
 		DigestAlgorithm:    viper.GetString("digest-algorithm"),
 	})
 	i.signer = signer

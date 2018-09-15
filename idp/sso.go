@@ -148,6 +148,7 @@ func sha256Sum(sig []byte) []byte {
 	return h.Sum(nil)
 }
 
+// DefaultRedirectSSOHandler is the default implementation for the redirect login handler. It can be used as is, wrapped in other handlers, or replaced completely.
 func (i *IDP) DefaultRedirectSSOHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		err := func() error {

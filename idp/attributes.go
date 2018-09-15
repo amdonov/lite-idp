@@ -19,6 +19,7 @@ import (
 	"github.com/spf13/viper"
 )
 
+// AttributeSource allows implementations to retrieve user attributes from any upstream source such as a database, LDAP, or Web service.
 type AttributeSource interface {
 	AddAttributes(*model.User) error
 }
@@ -27,6 +28,7 @@ type simpleSource struct {
 	users map[string][]*model.Attribute
 }
 
+// UserAttributes holds attributes for a given user
 type UserAttributes struct {
 	Name       string
 	Attributes map[string][]string
@@ -39,6 +41,7 @@ func (ss *simpleSource) AddAttributes(user *model.User) error {
 	return nil
 }
 
+// NewAttributeSource provides a default SAML attribute source that reads user information from the users key in the viper configuration
 func NewAttributeSource() (AttributeSource, error) {
 	userAttributes := []UserAttributes{}
 	err := viper.UnmarshalKey("users", &userAttributes)

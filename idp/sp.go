@@ -27,6 +27,7 @@ type ServiceProvider struct {
 	publicKey interface{}
 }
 
+// AssertionConsumerService is a SAML assertion consumer service
 type AssertionConsumerService struct {
 	Index     uint32
 	IsDefault bool
@@ -34,6 +35,7 @@ type AssertionConsumerService struct {
 	Location  string
 }
 
+// ConvertMetadata translates SP Metadata retrieved from XML into an internal metadata representation
 func ConvertMetadata(spMeta *saml.SPEntityDescriptor) *ServiceProvider {
 	sp := &ServiceProvider{
 		Certificate: spMeta.SPSSODescriptor.KeyDescriptor.KeyInfo.X509Data.X509Certificate,
