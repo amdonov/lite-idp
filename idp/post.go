@@ -19,13 +19,14 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/xml"
+	"io"
 	"net/http"
 
 	"github.com/amdonov/lite-idp/model"
 )
 
 func (i *IDP) sendPostResponse(authRequest *model.AuthnRequest, user *model.User,
-	w http.ResponseWriter, r *http.Request) error {
+	w io.Writer, r *http.Request) error {
 	response := i.makeAuthnResponse(authRequest, user)
 	// Don't need to change the response. Go ahead and sign it
 	signature, err := i.signer.CreateSignature(response.Assertion)

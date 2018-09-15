@@ -12,20 +12,33 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cmd
+package idp
 
 import (
+	"bytes"
 	"testing"
 
+	"github.com/PuerkitoBio/goquery"
+	"github.com/amdonov/lite-idp/model"
 	"github.com/stretchr/testify/assert"
-	"golang.org/x/crypto/bcrypt"
 )
 
-func Test_hashPassword(t *testing.T) {
-	password := []byte("password")
-	hash, err := hashPassword(password)
+func TestIDP_sendPostResponse(t *testing.T) {
+	i := &IDP{}
+	getTestIDP(t, i)
+	var b bytes.Buffer
+	if err := i.sendPostResponse(&model.AuthnRequest{
+		AssertionConsumerServiceURL: "testsvc",
+	}, &model.User{}, &b, nil); err != nil {
+		t.Fatal(err)
+	}
+	// Check to see if the response contained a form posting to the assertion consumer service
+	// Load the HTML document
+	doc, err := goquery.NewDocumentFromReader(bytes.NewReader(b.Bytes()))
 	if err != nil {
 		t.Fatal(err)
 	}
-	assert.Equal(t, nil, bcrypt.CompareHashAndPassword([]byte(hash), password))
+	value, ok := doc.Find("#samlpost").Attr("action")
+	assert.True(t, ok, "failed to find form")
+	assert.Equal(t, "testsvc", value, "assertion consumer service url doesn't match")
 }

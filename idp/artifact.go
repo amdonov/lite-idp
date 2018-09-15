@@ -36,60 +36,64 @@ func (i *IDP) DefaultArtifactResolveHandler() http.HandlerFunc {
 			return
 		}
 		log.Infof("received artifact resolution request from %s", getSubjectDN(tlsCert.Subject))
-		decoder := xml.NewDecoder(r.Body)
-		var resolveEnv saml.ArtifactResolveEnvelope
-		err = decoder.Decode(&resolveEnv)
-		// TODO confirm appropriate error response for this service
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		artifact := resolveEnv.Body.ArtifactResolve.Artifact
-		data, err := i.TempCache.Get(artifact)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		artifactResponse := &model.ArtifactResponse{}
-		err = proto.Unmarshal(data, artifactResponse)
-		// TODO confirm appropriate error response for this service
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		response := i.makeAuthnResponse(artifactResponse.Request, artifactResponse.User)
-		artResponseEnv := saml.ArtifactResponseEnvelope{}
-		artResponse := &artResponseEnv.Body.ArtifactResponse
-		artResponse.ID = saml.NewID()
-		now := time.Now()
-		artResponse.IssueInstant = now
-		artResponse.InResponseTo = resolveEnv.Body.ArtifactResolve.ID
-		artResponse.Version = "2.0"
-		artResponse.Issuer = &saml.Issuer{
-			Value: i.entityID,
-		}
-		artResponse.Status = &saml.Status{
-			StatusCode: saml.StatusCode{
-				Value: "urn:oasis:names:tc:SAML:2.0:status:Success",
-			},
-		}
-		artResponse.Response = *response
-
-		signature, err := i.signer.CreateSignature(response.Assertion)
-		// TODO confirm appropriate error response for this service
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		response.Assertion.Signature = signature
-		// TODO handle these errors. Probably can't do anything besides log, as we've already started to write the
-		// response.
-		_, err = w.Write([]byte(xml.Header))
-		encoder := xml.NewEncoder(w)
-		err = encoder.Encode(artResponseEnv)
-		err = encoder.Flush()
+		i.processArtifactResolutionRequest(w, r)
 	}
+}
+
+func (i *IDP) processArtifactResolutionRequest(w http.ResponseWriter, r *http.Request) {
+	decoder := xml.NewDecoder(r.Body)
+	var resolveEnv saml.ArtifactResolveEnvelope
+	err := decoder.Decode(&resolveEnv)
+	// TODO confirm appropriate error response for this service
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	artifact := resolveEnv.Body.ArtifactResolve.Artifact
+	data, err := i.TempCache.Get(artifact)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	artifactResponse := &model.ArtifactResponse{}
+	err = proto.Unmarshal(data, artifactResponse)
+	// TODO confirm appropriate error response for this service
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	response := i.makeAuthnResponse(artifactResponse.Request, artifactResponse.User)
+	artResponseEnv := saml.ArtifactResponseEnvelope{}
+	artResponse := &artResponseEnv.Body.ArtifactResponse
+	artResponse.ID = saml.NewID()
+	now := time.Now()
+	artResponse.IssueInstant = now
+	artResponse.InResponseTo = resolveEnv.Body.ArtifactResolve.ID
+	artResponse.Version = "2.0"
+	artResponse.Issuer = &saml.Issuer{
+		Value: i.entityID,
+	}
+	artResponse.Status = &saml.Status{
+		StatusCode: saml.StatusCode{
+			Value: "urn:oasis:names:tc:SAML:2.0:status:Success",
+		},
+	}
+	artResponse.Response = *response
+
+	signature, err := i.signer.CreateSignature(response.Assertion)
+	// TODO confirm appropriate error response for this service
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	response.Assertion.Signature = signature
+	// TODO handle these errors. Probably can't do anything besides log, as we've already started to write the
+	// response.
+	_, err = w.Write([]byte(xml.Header))
+	encoder := xml.NewEncoder(w)
+	err = encoder.Encode(artResponseEnv)
+	err = encoder.Flush()
 }
 
 func (i *IDP) sendArtifactResponse(authRequest *model.AuthnRequest, user *model.User,

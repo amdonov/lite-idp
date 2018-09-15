@@ -20,7 +20,6 @@ import (
 	"testing"
 
 	"github.com/spf13/viper"
-	"github.com/stretchr/testify/assert"
 )
 
 func getTestIDP(t *testing.T, i *IDP) *httptest.Server {
@@ -31,15 +30,4 @@ func getTestIDP(t *testing.T, i *IDP) *httptest.Server {
 		t.Fatal(err)
 	}
 	return httptest.NewTLSServer(handler)
-}
-
-func TestIDP_Handler(t *testing.T) {
-	ts := getTestIDP(t, &IDP{})
-	// try to get server metadata
-	resp, err := ts.Client().Get(ts.URL + "/metadata")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer resp.Body.Close()
-	assert.Equal(t, 200, resp.StatusCode, "metadata not found")
 }

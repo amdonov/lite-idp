@@ -12,20 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cmd
+package idp
 
 import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"golang.org/x/crypto/bcrypt"
 )
 
-func Test_hashPassword(t *testing.T) {
-	password := []byte("password")
-	hash, err := hashPassword(password)
+func TestIDP_DefaultMetadataHandler(t *testing.T) {
+	ts := getTestIDP(t, &IDP{})
+	// try to get server metadata
+	resp, err := ts.Client().Get(ts.URL + "/metadata")
 	if err != nil {
 		t.Fatal(err)
 	}
-	assert.Equal(t, nil, bcrypt.CompareHashAndPassword([]byte(hash), password))
+	defer resp.Body.Close()
+	assert.Equal(t, 200, resp.StatusCode, "metadata not found")
 }
