@@ -1,6 +1,8 @@
-image::logo.png[]
-
 = LITE-IDP
+
+https://goreportcard.com/report/github.com/amdonov/lite-idp[image:https://goreportcard.com/badge/github.com/amdonov/lite-idp[Go Report Card]]
+
+image::logo.png[]
 
 LITE-IDP is a lightweight SAML 2.0 Identity Provider and Service Provider library written in Go. The project's goal is to create an IdP that is easier to configure and extend than https://www.shibboleth.net/[Shibboleth's IdP].
 
