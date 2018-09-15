@@ -44,7 +44,7 @@ To minimize external dependencies, the default build uses a single file to confi
 
 .Build the binary
 ----
-go get github.com/amdonov/lite-idp/lite-idp
+go get github.com/amdonov/lite-idp
 ----
 
 .Sample Configuration file
@@ -112,7 +112,7 @@ to another cobra based application and customize the IDP struct as well.
 
 ----
 
-import lidp "github.com/amdonov/lite-idp/lite-idp/cmd"
+import lidp "github.com/amdonov/lite-idp/cmd"
 ...
   rootCmd.AddCommand(lidp.AddCmd)
 	rootCmd.AddCommand(lidp.HashCmd)

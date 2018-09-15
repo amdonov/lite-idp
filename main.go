@@ -21,7 +21,7 @@ import (
 
 	"github.com/amdonov/lite-idp/idp"
 
-	"github.com/amdonov/lite-idp/lite-idp/cmd"
+	"github.com/amdonov/lite-idp/cmd"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
