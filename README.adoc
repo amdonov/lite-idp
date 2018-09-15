@@ -1,6 +1,7 @@
 = LITE-IDP
 
 https://goreportcard.com/report/github.com/amdonov/lite-idp[image:https://goreportcard.com/badge/github.com/amdonov/lite-idp[Go Report Card]]
+https://coveralls.io/github/amdonov/lite-idp?branch=master[image:https://coveralls.io/repos/github/amdonov/lite-idp/badge.svg?branch=master[Coverage Status]]
 
 image::logo.png[]
 
