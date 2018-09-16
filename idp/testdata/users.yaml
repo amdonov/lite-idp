@@ -1,0 +1,9 @@
+users:
+- attributes:
+    FirstName:
+    - John
+    FullName:
+    - John Doe
+    SurName:
+    - Doe
+  name: john

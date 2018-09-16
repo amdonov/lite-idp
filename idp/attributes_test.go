@@ -15,20 +15,33 @@
 package idp
 
 import (
-	"net/http/httptest"
+	"os"
 	"path/filepath"
 	"testing"
 
+	"github.com/amdonov/lite-idp/model"
 	"github.com/spf13/viper"
+	"github.com/stretchr/testify/assert"
 )
 
-func getTestIDP(t *testing.T, i *IDP) *httptest.Server {
-	viper.Set("tls-certificate", filepath.Join("testdata", "certificate.pem"))
-	viper.Set("tls-private-key", filepath.Join("testdata", "key.pem"))
-	viper.Set("tls-ca", filepath.Join("testdata", "certificate.pem"))
-	handler, err := i.Handler()
+func TestNewAttributeSource(t *testing.T) {
+	in, err := os.Open(filepath.Join("testdata", "users.yaml"))
 	if err != nil {
 		t.Fatal(err)
 	}
-	return httptest.NewTLSServer(handler)
+	defer in.Close()
+	viper.SetConfigType("yaml")
+	err = viper.ReadConfig(in)
+	if err != nil {
+		t.Fatal(err)
+	}
+	attSrc, err := NewAttributeSource()
+	if err != nil {
+		t.Fatal(err)
+	}
+	user := &model.User{Name: "john"}
+	if err = attSrc.AddAttributes(user); err != nil {
+		t.Fatal(err)
+	}
+	assert.Equal(t, 3, len(user.Attributes), "expected 3 attributes")
 }

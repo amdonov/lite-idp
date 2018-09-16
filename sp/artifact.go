@@ -59,9 +59,7 @@ func (sp *serviceProvider) ArtifactFunc(callback ArtifactCallback) http.HandlerF
 		}
 
 		// call the IdP to get the SAML assertion
-		artifact := r.Form.Get("SAMLart")
-
-		assertion, err := sp.resolveArtifact(artifact)
+		assertion, err := sp.resolveArtifact(r.Form.Get("SAMLart"))
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusUnauthorized)
 			return
