@@ -33,34 +33,43 @@ func (i *IDP) DefaultQueryHandler() http.HandlerFunc {
 					Response: *response,
 				},
 			}
-			var attrResp saml.AttributeRespEnv
-			resp := &attrResp.Body.Response
-			resp.ID = saml.NewID()
-			resp.InResponseTo = query.ID
-			resp.Version = "2.0"
 			now := time.Now()
-			resp.IssueInstant = now
-			resp.Issuer = saml.NewIssuer(i.entityID)
-			a := &saml.Assertion{}
-			a.Issuer = resp.Issuer
-			a.IssueInstant = now
-			a.ID = saml.NewID()
-			a.Version = "2.0"
-			a.Subject = &saml.Subject{}
-			a.Subject.NameID = query.Subject.NameID
-			a.AttributeStatement = user.AttributeStatement()
-			a.Conditions = &saml.Conditions{}
-			a.Conditions.NotBefore = now
 			fiveMinutes, _ := time.ParseDuration("5m")
 			fiveFromNow := now.Add(fiveMinutes)
-			a.Conditions.NotOnOrAfter = fiveFromNow
-			a.Conditions.AudienceRestriction = &saml.AudienceRestriction{Audience: query.Issuer}
-			resp.Status = &saml.Status{
-				StatusCode: saml.StatusCode{
-					Value: "urn:oasis:names:tc:SAML:2.0:status:Success",
+			attrResp := &saml.AttributeRespEnv{
+				Body: saml.AttributeRespBody{
+					Response: saml.Response{
+						StatusResponseType: saml.StatusResponseType{
+							Version:      "2.0",
+							ID:           saml.NewID(),
+							IssueInstant: now,
+							Status: &saml.Status{
+								StatusCode: saml.StatusCode{
+									Value: "urn:oasis:names:tc:SAML:2.0:status:Success",
+								},
+							},
+							InResponseTo: query.ID,
+							Issuer:       saml.NewIssuer(i.entityID),
+						},
+						Assertion: &saml.Assertion{
+							Issuer:       saml.NewIssuer(i.entityID),
+							IssueInstant: now,
+							ID:           saml.NewID(),
+							Version:      "2.0",
+							Subject: &saml.Subject{
+								NameID: query.Subject.NameID,
+							},
+							AttributeStatement: user.AttributeStatement(),
+							Conditions: &saml.Conditions{
+								NotBefore:           now,
+								NotOnOrAfter:        fiveFromNow,
+								AudienceRestriction: &saml.AudienceRestriction{Audience: query.Issuer},
+							},
+						},
+					},
 				},
 			}
-			resp.Assertion = a
+			resp := attrResp.Body.Response
 			signature, err := i.signer.CreateSignature(resp.Assertion)
 			// TODO confirm appropriate error response for this service
 			if err != nil {

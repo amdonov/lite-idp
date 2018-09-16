@@ -15,6 +15,9 @@
 package idp
 
 import (
+	"encoding/xml"
+	"io"
+
 	"github.com/amdonov/lite-idp/saml"
 )
 
@@ -35,8 +38,16 @@ type AssertionConsumerService struct {
 	Location  string
 }
 
-// ConvertMetadata translates SP Metadata retrieved from XML into an internal metadata representation
-func ConvertMetadata(spMeta *saml.SPEntityDescriptor) *ServiceProvider {
+func ReadSPMetadata(metadata io.Reader) (*ServiceProvider, error) {
+	decoder := xml.NewDecoder(metadata)
+	sp := &saml.SPEntityDescriptor{}
+	if err := decoder.Decode(sp); err != nil {
+		return nil, err
+	}
+	return convertMetadata(sp), nil
+}
+
+func convertMetadata(spMeta *saml.SPEntityDescriptor) *ServiceProvider {
 	sp := &ServiceProvider{
 		Certificate: spMeta.SPSSODescriptor.KeyDescriptor.KeyInfo.X509Data.X509Certificate,
 		EntityID:    spMeta.EntityDescriptor.EntityID,

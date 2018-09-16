@@ -15,7 +15,6 @@
 package cmd
 
 import (
-	"encoding/xml"
 	"fmt"
 	"io"
 	"net/http"
@@ -26,7 +25,6 @@ import (
 
 	"github.com/amdonov/lite-idp/idp"
 
-	"github.com/amdonov/lite-idp/saml"
 	"github.com/spf13/cobra"
 )
 
@@ -43,11 +41,10 @@ var serviceProviderCmd = &cobra.Command{
 			return err
 		}
 		defer metadata.Close()
-		spMeta, err := readMetadata(metadata)
+		serviceProvider, err := idp.ReadSPMetadata(metadata)
 		if err != nil {
 			return err
 		}
-		sp := idp.ConvertMetadata(spMeta)
 		// Get the existing sps
 		sps := []*idp.ServiceProvider{}
 		if err = viper.UnmarshalKey("sps", &sps); err != nil {
@@ -55,27 +52,18 @@ var serviceProviderCmd = &cobra.Command{
 		}
 		found := false
 		for i, client := range sps {
-			if client.EntityID == sp.EntityID {
-				sps[i] = sp
+			if client.EntityID == serviceProvider.EntityID {
+				sps[i] = serviceProvider
 				found = true
 				break
 			}
 		}
 		if !found {
-			sps = append(sps, sp)
+			sps = append(sps, serviceProvider)
 		}
 		viper.Set("sps", sps)
 		return viper.WriteConfig()
 	},
-}
-
-func readMetadata(metadata io.Reader) (*saml.SPEntityDescriptor, error) {
-	decoder := xml.NewDecoder(metadata)
-	sp := &saml.SPEntityDescriptor{}
-	if err := decoder.Decode(sp); err != nil {
-		return nil, err
-	}
-	return sp, nil
 }
 
 func getReader(fileOrUrl string) (io.ReadCloser, error) {
