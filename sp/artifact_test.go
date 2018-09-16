@@ -18,12 +18,15 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/amdonov/lite-idp/idp"
 	"github.com/amdonov/lite-idp/saml"
+	"github.com/amdonov/lite-idp/store"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 )
@@ -80,4 +83,42 @@ func Test_serviceProvider_ArtifactFunc(t *testing.T) {
 	}
 	defer resp.Body.Close()
 	assert.Equal(t, 401, resp.StatusCode, "expected invalid request")
+}
+
+func Test_serviceProvider_retrieveState(t *testing.T) {
+	viper.Set("tls-certificate", filepath.Join("testdata", "certificate.pem"))
+	viper.Set("tls-private-key", filepath.Join("testdata", "key.pem"))
+	tlsConfigClient, err := idp.ConfigureTLS()
+	if err != nil {
+		t.Fatal(err)
+	}
+	cache, err := store.New(time.Minute)
+	if err != nil {
+		t.Fatal(err)
+	}
+	sp, err := New(Configuration{
+		EntityID:                    "https://test/",
+		AssertionConsumerServiceURL: "http://test",
+		TLSConfig:                   tlsConfigClient,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	// make request without the cache
+	req := httptest.NewRequest("GET", "/test", nil)
+	req.Form = url.Values{}
+	req.Form.Add("RelayState", "test")
+	state, err := sp.(*serviceProvider).retrieveState(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Equal(t, []byte("test"), state)
+	// rerun with a cache
+	sp.(*serviceProvider).stateCache = cache
+	cache.Set("test", []byte("cached-value"))
+	state, err = sp.(*serviceProvider).retrieveState(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Equal(t, []byte("cached-value"), state)
 }

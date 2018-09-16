@@ -39,23 +39,11 @@ func (sp *serviceProvider) ArtifactFunc(callback ArtifactCallback) http.HandlerF
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		// retrieve the relayState from our cache
-		stateID := r.Form.Get("RelayState")
-		if stateID == "" {
-			log.Info("received a request without RelayState")
-			http.Error(w, "identity provider did not return RelayState", http.StatusUnauthorized)
+
+		state, err := sp.retrieveState(r)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusUnauthorized)
 			return
-		}
-		var state []byte
-		if sp.stateCache == nil {
-			state = []byte(stateID)
-		} else {
-			state, err = sp.stateCache.Get(stateID)
-			if err != nil {
-				log.Info("RelayState not found in cache")
-				http.Error(w, "identity provider did not return RelayState", http.StatusUnauthorized)
-				return
-			}
 		}
 
 		// call the IdP to get the SAML assertion
@@ -68,6 +56,25 @@ func (sp *serviceProvider) ArtifactFunc(callback ArtifactCallback) http.HandlerF
 		// allow the application to write the response
 		callback(w, r, state, assertion)
 	}
+}
+
+func (sp *serviceProvider) retrieveState(r *http.Request) (state []byte, err error) {
+	// retrieve the relayState from our cache
+	stateID := r.Form.Get("RelayState")
+	if stateID == "" {
+		log.Info("received a request without RelayState")
+		return nil, errors.New("identity provider did not return RelayState")
+	}
+	if sp.stateCache == nil {
+		state = []byte(stateID)
+	} else {
+		state, err = sp.stateCache.Get(stateID)
+		if err != nil {
+			log.Info("RelayState not found in cache")
+			return nil, errors.New("provided RelayState is invalid")
+		}
+	}
+	return state, nil
 }
 
 func (sp *serviceProvider) resolveArtifact(artifact string) (*saml.Assertion, error) {
