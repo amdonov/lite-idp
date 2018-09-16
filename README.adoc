@@ -10,7 +10,7 @@ LITE-IDP is a lightweight SAML 2.0 Identity Provider and Service Provider librar
 
 == Status
 
-The initial implemention of SAML 2 protocols was completed in 2015. However, the project lacked an extensible configuration mechanism. It was converted to use https://github.com/spf13/cobra[Cobra] and https://github.com/spf13/viper[Viper] in September 2017 and is now easy to use and customize.
+The initial implementation of SAML 2 protocols was completed in 2015. However, the project lacked an extensible configuration mechanism. It was converted to use https://github.com/spf13/cobra[Cobra] and https://github.com/spf13/viper[Viper] in September 2017 and is now easy to use and customize.
 
 === Identity Provider
 
@@ -75,7 +75,7 @@ users:
       - Aaron Donovan
 ----
 <1> User that will authentication with client certificate. 
-<2> User that will authenticate with password. Passwords can be hashed with the commmand *lite-idp hash*  
+<2> User that will authenticate with password. Passwords can be hashed with the command *lite-idp hash*  
 
 You can use existing certificates or use the Makefile in hack/tls-setup to generate some. 
 
@@ -128,7 +128,7 @@ One can examine the struct to see integration points. Some key ones are highligh
 
 === Password Validation
 
-Many organizations still use username/password for authentication. Validation of user provided passwords is controlled by the IDP's PasswordValidator. If one isn't provided it will use a simple one that reads hashed passwords from the configuration file. Developers can use that implemation as example. Viper makes it easy retrieve any required custom parameters from the configuration file.
+Many organizations still use username/password for authentication. Validation of user provided passwords is controlled by the IDP's PasswordValidator. If one isn't provided it will use a simple one that reads hashed passwords from the configuration file. Developers can use that implementation as example. Viper makes it easy retrieve any required custom parameters from the configuration file.
 
 .PasswordValidator interface
 ----
@@ -156,7 +156,7 @@ image::login.png[]
 
 === Storing State
 
-The IdP needs to store some state both short term (minutes) and longer term (hours). For example, keeping request information while a user enters data in a login form or maintaing active sessions to enable single-sign on. Both cases are handled through a common interface.
+The IdP needs to store some state both short term (minutes) and longer term (hours). For example, keeping request information while a user enters data in a login form or maintaining active sessions to enable single-sign on. Both cases are handled through a common interface.
 
 .Cache interface
 ----
@@ -167,7 +167,7 @@ type Cache interface {
 }
 ----
 
-Data is marshalled to a byte slice using protocol buffers to save space and increase performance. The default implementation uses https://github.com/allegro/bigcache[BigCache]. It's trival to replace this implementation with something like Redis or memcached if desired. The relevant IDP fields are TempCache and UserCache.
+Data is marshalled to a byte slice using protocol buffers to save space and increase performance. The default implementation uses https://github.com/allegro/bigcache[BigCache]. It's trival to replace this implementation with something like Redis or memcached if desired. The relevant IDP fields are TempCache and UserCache. There is a sample Redis implementation in store/redis.
 
 == Clustered Deployments
 
