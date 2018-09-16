@@ -10,7 +10,7 @@ LITE-IDP is a lightweight SAML 2.0 Identity Provider and Service Provider librar
 
 == Status
 
-The initial implemention of SAML 2 protocols was completed in 2015. However, the project lacked an extensible configuration mechanism. It was converted to use https://github.com/spf13/cobra[Cobra] and https://github.com/spf13/viper[Viper] in September 2017 and is now easy to use customize.
+The initial implemention of SAML 2 protocols was completed in 2015. However, the project lacked an extensible configuration mechanism. It was converted to use https://github.com/spf13/cobra[Cobra] and https://github.com/spf13/viper[Viper] in September 2017 and is now easy to use and customize.
 
 === Identity Provider
 
