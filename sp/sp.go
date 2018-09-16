@@ -25,6 +25,7 @@ import (
 	"github.com/amdonov/xmlsig"
 )
 
+// ServiceProvider acts as a SAML service provider
 type ServiceProvider interface {
 	Query(nameID string) (*saml.Assertion, error)
 	GetRedirect([]byte) (string, error)
@@ -32,6 +33,7 @@ type ServiceProvider interface {
 	ArtifactFunc(callback ArtifactCallback) http.HandlerFunc
 }
 
+// Configuration holds the service provider's configuration
 type Configuration struct {
 	EntityID                    string
 	AssertionConsumerServiceURL string
@@ -46,6 +48,7 @@ type Configuration struct {
 	Cache     store.Cache
 }
 
+// New creates a service provider from the provided configuration
 func New(conf Configuration) (ServiceProvider, error) {
 	templ, err := template.New("redirect").Parse(requestTemplate)
 	if err != nil {

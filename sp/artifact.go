@@ -28,6 +28,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// ArtifactCallback is called by the service provider following success retrieval of a SAML assertion
 type ArtifactCallback func(w http.ResponseWriter, r *http.Request, state []byte, assertion *saml.Assertion)
 
 func (sp *serviceProvider) ArtifactFunc(callback ArtifactCallback) http.HandlerFunc {

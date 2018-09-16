@@ -24,6 +24,7 @@ import (
 	"github.com/amdonov/xmlsig"
 )
 
+// MetadataFunc creates a handler function to return service provider metadata
 func (sp *serviceProvider) MetadataFunc() (http.HandlerFunc, error) {
 	certData := sp.configuration.TLSConfig.Certificates[0].Certificate[0]
 	// build EntityDescriptor

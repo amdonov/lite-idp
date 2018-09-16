@@ -16,7 +16,10 @@ package saml
 
 import (
 	"reflect"
+	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestNewIssuer(t *testing.T) {
@@ -28,7 +31,7 @@ func TestNewIssuer(t *testing.T) {
 		args args
 		want *Issuer
 	}{
-		// TODO: Add test cases.
+		{"simple issuer", args{"myissuer"}, &Issuer{Format: "urn:oasis:names:tc:SAML:2.0:nameid-format:entity", Value: "myissuer"}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -37,4 +40,8 @@ func TestNewIssuer(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestNewID(t *testing.T) {
+	assert.True(t, strings.HasPrefix(NewID(), "_"), "id doesn't start with _")
 }

@@ -1,33 +1,35 @@
 package ui
 
 import (
-	"net/http"
+	"net/http/httptest"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func Test_idpUI_ServeHTTP(t *testing.T) {
-	type fields struct {
-		h             http.Handler
-		prefixHandler http.Handler
-	}
-	type args struct {
-		w   http.ResponseWriter
-		req *http.Request
-	}
+	ts := httptest.NewServer(UI())
+	defer ts.Close()
+	// Get favicon
+	// Get login form
+	// Get missing page
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
+		name string
+		page string
+		want int
 	}{
-		// TODO: Add test cases.
+		{"favicon", "/favicon.ico", 200},
+		{"login form", "/ui/login.html", 200},
+		{"missing", "/ui/random.html", 404},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := &idpUI{
-				h:             tt.fields.h,
-				prefixHandler: tt.fields.prefixHandler,
+			resp, err := ts.Client().Get(ts.URL + tt.page)
+			if err != nil {
+				t.Errorf("ui error %v", err)
 			}
-			s.ServeHTTP(tt.args.w, tt.args.req)
+			defer resp.Body.Close()
+			assert.Equal(t, tt.want, resp.StatusCode)
 		})
 	}
 }

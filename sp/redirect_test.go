@@ -12,21 +12,30 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package sp
 
 import (
-	"os"
+	"path/filepath"
 	"testing"
 
+	"github.com/amdonov/lite-idp/idp"
 	"github.com/spf13/viper"
-	"github.com/stretchr/testify/assert"
 )
 
-func Test_initConfig(t *testing.T) {
-	// make sure environment replacer is setup properly
-	viper.SetDefault("my-config-value", "a")
-	initConfig()
-	assert.Equal(t, "a", viper.Get("my-config-value"), "initial value is wrong")
-	os.Setenv("MY_CONFIG_VALUE", "b")
-	assert.Equal(t, "b", viper.Get("my-config-value"), "second value is wrong")
+func Test_serviceProvider_GetRedirect(t *testing.T) {
+	viper.Set("tls-certificate", filepath.Join("testdata", "certificate.pem"))
+	viper.Set("tls-private-key", filepath.Join("testdata", "key.pem"))
+	tlsConfigClient, err := idp.ConfigureTLS()
+	if err != nil {
+		t.Fatal(err)
+	}
+	serviceProvider, err := New(Configuration{
+		EntityID:                    "https://www.jw.dev.gfclab.com/user",
+		AssertionConsumerServiceURL: "http://test",
+		TLSConfig:                   tlsConfigClient,
+	})
+	_, err = serviceProvider.GetRedirect([]byte("mystate"))
+	if err != nil {
+		t.Fatal(err)
+	}
 }

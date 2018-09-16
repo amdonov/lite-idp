@@ -18,7 +18,7 @@ func TestQuery(t *testing.T) {
 
 	ts := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// TODO check incoming request
-		f, _ := os.Open(filepath.Join("testdata", "response.xml"))
+		f, _ := os.Open(filepath.Join("testdata", "query-response.xml"))
 		defer f.Close()
 		io.Copy(w, f)
 	}))
@@ -28,7 +28,7 @@ func TestQuery(t *testing.T) {
 		t.Fatal(err)
 	}
 	serviceProvider, err := New(Configuration{
-		EntityID:                    "https://www.jw.dev.gfclab.com/user",
+		EntityID:                    "https://test/",
 		AssertionConsumerServiceURL: "http://test",
 		Client:                      ts.Client(),
 		IDPQueryEndpoint:            ts.URL,

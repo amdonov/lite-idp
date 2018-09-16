@@ -15,35 +15,38 @@
 package model
 
 import (
-	"reflect"
+	"encoding/xml"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/amdonov/lite-idp/saml"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestNewAuthnRequest(t *testing.T) {
-	type args struct {
-		src        *saml.AuthnRequest
-		relayState string
+	in, err := os.Open(filepath.Join("testdata", "authn-request.xml"))
+	if err != nil {
+		t.Fatal(err)
 	}
-	tests := []struct {
-		name    string
-		args    args
-		want    *AuthnRequest
-		wantErr bool
-	}{
-		// TODO: Add test cases.
+	defer in.Close()
+	dec := xml.NewDecoder(in)
+	req := &saml.AuthnRequest{}
+	dec.Decode(req)
+	modelReq, err := NewAuthnRequest(req, "1234")
+	if err != nil {
+		t.Fatal(err)
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := NewAuthnRequest(tt.args.src, tt.args.relayState)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("NewAuthnRequest() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("NewAuthnRequest() = %v, want %v", got, tt.want)
-			}
-		})
-	}
+	assert.Equal(t, "http://sp.example.com/demo1/metadata.php", modelReq.GetIssuer(), "issuer doesn't match")
+}
+
+func TestUser_AttributeStatement(t *testing.T) {
+	user := &User{Name: "joe"}
+	user.AppendAttributes([]*Attribute{
+		{"age", []string{"9"}},
+		{"sn", []string{"Mama"}},
+		{"email", []string{"joe@gmail.com"}},
+	})
+	statement := user.AttributeStatement()
+	assert.Equal(t, 3, len(statement.Attribute), "expected 3 attributes")
 }
