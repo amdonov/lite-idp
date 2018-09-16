@@ -6,5 +6,5 @@ before_install:
   - go get github.com/mattn/goveralls
 script:
   - go test ./... -coverprofile cp.out
-  - grep -v "bindata" cp.out > cover.out
+  - grep -v "bindata" cp.out | grep -v ".pb.go" > cover.out
   - $GOPATH/bin/goveralls -coverprofile cover.out -service=travis-ci
