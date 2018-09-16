@@ -66,13 +66,13 @@ var serviceProviderCmd = &cobra.Command{
 	},
 }
 
-func getReader(fileOrUrl string) (io.ReadCloser, error) {
-	url, err := url.Parse(fileOrUrl)
+func getReader(fileOrURL string) (io.ReadCloser, error) {
+	url, err := url.Parse(fileOrURL)
 	if err != nil {
 		return nil, err
 	}
 	if url.IsAbs() {
-		resp, err := http.Get(fileOrUrl)
+		resp, err := http.Get(fileOrURL)
 		if err != nil {
 			return nil, err
 		}
@@ -82,7 +82,7 @@ func getReader(fileOrUrl string) (io.ReadCloser, error) {
 		return resp.Body, nil
 	}
 	// Just treat as a file
-	return os.Open(fileOrUrl)
+	return os.Open(fileOrURL)
 }
 
 func init() {

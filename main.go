@@ -69,5 +69,6 @@ func main() {
 	rootCmd.AddCommand(cmd.ServeCmd(&idp.IDP{}))
 	rootCmd.AddCommand(cmd.AddCmd)
 	rootCmd.AddCommand(cmd.HashCmd)
+	rootCmd.AddCommand(cmd.ClusterCmd())
 	Execute()
 }

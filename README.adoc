@@ -110,7 +110,8 @@ import "github.com/amdonov/lite-idp/idp"
 <1> Default IDP struct without configuration
 
 As of version 0.3.0 it's possible to add lite-idp commands
-to another cobra based application and customize the IDP struct as well.
+to another cobra based application and customize the IDP struct as well. The cluster 
+command makes use of this feature and can be used an an example.
 
 ----
 
@@ -167,8 +168,20 @@ type Cache interface {
 }
 ----
 
-Data is marshalled to a byte slice using protocol buffers to save space and increase performance. The default implementation uses https://github.com/allegro/bigcache[BigCache]. It's trival to replace this implementation with something like Redis or memcached if desired. The relevant IDP fields are TempCache and UserCache. There is a sample Redis implementation in store/redis.
+Data is marshalled to a byte slice using protocol buffers to save space and increase performance. The default implementation uses https://github.com/allegro/bigcache[BigCache]. It's trival to replace this implementation with something like Redis or memcached if desired. The relevant IDP fields are TempCache and UserCache. There is a Redis implementation in store/redis that is used when running in cluster mode.
 
 == Clustered Deployments
 
-It's possible to scale the IdP horizontally and use centralized state and configuration. Viper supports retrieval of configuration information from etcd, and as discussed in Storing State, the IdP can store all state information in external systems.
+It's possible to scale the IdP horizontally and use centralized state and configuration. Viper supports retrieval of configuration information from etcd, and as discussed in Storing State, the IdP can store all state information in external systems. To run a cluster set configure Redis properties and run the cluster command.
+
+.Sample Redis configuration section
+----
+redis:
+ address: "redis:6379"
+ password: money
+----
+
+.Running with Redis cache
+----
+lite-idp cluster
+----

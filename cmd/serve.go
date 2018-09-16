@@ -58,6 +58,7 @@ func ServeCmd(indentityProvider *idp.IDP) *cobra.Command {
 			log.Info("server shutdown cleanly")
 			return nil
 		},
+		Args: cobra.NoArgs,
 	}
 }
 
