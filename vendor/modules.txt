@@ -1,5 +1,10 @@
 # github.com/PuerkitoBio/goquery v1.4.1
 github.com/PuerkitoBio/goquery
+# github.com/alicebob/gopher-json v0.0.0-20180125190556-5a6b3ba71ee6
+github.com/alicebob/gopher-json
+# github.com/alicebob/miniredis v0.0.0-20180911162847-3657542c8629
+github.com/alicebob/miniredis
+github.com/alicebob/miniredis/server
 # github.com/allegro/bigcache v1.0.0
 github.com/allegro/bigcache
 github.com/allegro/bigcache/queue
@@ -28,11 +33,14 @@ github.com/golang/protobuf/ptypes
 github.com/golang/protobuf/ptypes/timestamp
 github.com/golang/protobuf/ptypes/any
 github.com/golang/protobuf/ptypes/duration
+# github.com/gomodule/redigo v2.0.0+incompatible
+github.com/gomodule/redigo/redis
+github.com/gomodule/redigo/internal
 # github.com/google/uuid v0.0.0-20161128191214-064e2069ce9c
 github.com/google/uuid
 # github.com/gorilla/handlers v1.3.0
 github.com/gorilla/handlers
-# github.com/hashicorp/hcl v0.0.0-20171017181929-23c074d0eceb
+# github.com/hashicorp/hcl v1.0.0
 github.com/hashicorp/hcl
 github.com/hashicorp/hcl/hcl/printer
 github.com/hashicorp/hcl/hcl/ast
@@ -47,31 +55,36 @@ github.com/hashicorp/hcl/json/token
 github.com/inconshreveable/mousetrap
 # github.com/julienschmidt/httprouter v0.0.0-20150421170007-8c199fb6259f
 github.com/julienschmidt/httprouter
-# github.com/magiconair/properties v1.7.4
+# github.com/magiconair/properties v1.8.0
 github.com/magiconair/properties
-# github.com/mitchellh/mapstructure v0.0.0-20180111000720-b4575eea38cc
+# github.com/mitchellh/mapstructure v1.0.0
 github.com/mitchellh/mapstructure
-# github.com/pelletier/go-toml v1.1.0
+# github.com/pelletier/go-toml v1.2.0
 github.com/pelletier/go-toml
 # github.com/pmezard/go-difflib v1.0.0
 github.com/pmezard/go-difflib/difflib
 # github.com/sirupsen/logrus v1.0.4
 github.com/sirupsen/logrus
-# github.com/spf13/afero v1.0.2
+# github.com/spf13/afero v1.1.2
 github.com/spf13/afero
 github.com/spf13/afero/mem
-# github.com/spf13/cast v1.1.0
+# github.com/spf13/cast v1.2.0
 github.com/spf13/cast
 # github.com/spf13/cobra v0.0.1
 github.com/spf13/cobra
-# github.com/spf13/jwalterweatherman v0.0.0-20180109140146-7c0cea34c8ec
+# github.com/spf13/jwalterweatherman v1.0.0
 github.com/spf13/jwalterweatherman
-# github.com/spf13/pflag v1.0.0
+# github.com/spf13/pflag v1.0.2
 github.com/spf13/pflag
-# github.com/spf13/viper v1.1.0
+# github.com/spf13/viper v1.2.0
 github.com/spf13/viper
 # github.com/stretchr/testify v1.2.2
 github.com/stretchr/testify/assert
+# github.com/yuin/gopher-lua v0.0.0-20180912021107-ed65620d4bd7
+github.com/yuin/gopher-lua
+github.com/yuin/gopher-lua/parse
+github.com/yuin/gopher-lua/ast
+github.com/yuin/gopher-lua/pm
 # golang.org/x/crypto v0.0.0-20180122213707-d94f6bc902c2
 golang.org/x/crypto/bcrypt
 golang.org/x/crypto/ssh/terminal
@@ -79,11 +92,11 @@ golang.org/x/crypto/blowfish
 # golang.org/x/net v0.0.0-20180906233101-161cd47e91fd
 golang.org/x/net/html
 golang.org/x/net/html/atom
-# golang.org/x/sys v0.0.0-20180122081959-af50095a40f9
+# golang.org/x/sys v0.0.0-20180906133057-8cf3aee42992
 golang.org/x/sys/unix
 golang.org/x/sys/windows
-# golang.org/x/text v0.0.0-20171227012246-e19ae1496984
+# golang.org/x/text v0.3.0
 golang.org/x/text/transform
 golang.org/x/text/unicode/norm
-# gopkg.in/yaml.v2 v2.0.0
+# gopkg.in/yaml.v2 v2.2.1
 gopkg.in/yaml.v2
