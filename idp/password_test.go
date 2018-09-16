@@ -27,10 +27,9 @@ import (
 )
 
 func TestIDP_DefaultPasswordLoginHandler(t *testing.T) {
-	i := &IDP{PasswordValidator: &simpleValidator{
-		map[string][]byte{"joe": []byte("$2a$10$T7dLNN/oQjgxOZYJPYRBnOEFY3ZDqImVXW31zgjdv2Wl3.7Q.uUjC")},
-	}}
+	i := &IDP{}
 	ts := getTestIDP(t, i)
+	defer ts.Close()
 	// Need to cache request before attempting a login
 	req := &model.AuthnRequest{
 		ID: "2134",

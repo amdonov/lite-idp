@@ -63,23 +63,27 @@ func (i *IDP) processArtifactResolutionRequest(w http.ResponseWriter, r *http.Re
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	response := i.makeAuthnResponse(artifactResponse.Request, artifactResponse.User)
-	artResponseEnv := saml.ArtifactResponseEnvelope{}
-	artResponse := &artResponseEnv.Body.ArtifactResponse
-	artResponse.ID = saml.NewID()
 	now := time.Now()
-	artResponse.IssueInstant = now
-	artResponse.InResponseTo = resolveEnv.Body.ArtifactResolve.ID
-	artResponse.Version = "2.0"
-	artResponse.Issuer = &saml.Issuer{
-		Value: i.entityID,
-	}
-	artResponse.Status = &saml.Status{
-		StatusCode: saml.StatusCode{
-			Value: "urn:oasis:names:tc:SAML:2.0:status:Success",
+	response := i.makeAuthnResponse(artifactResponse.Request, artifactResponse.User)
+	artResponseEnv := saml.ArtifactResponseEnvelope{
+		Body: saml.ArtifactResponseBody{
+			ArtifactResponse: saml.ArtifactResponse{
+				StatusResponseType: saml.StatusResponseType{
+					ID:           saml.NewID(),
+					IssueInstant: now,
+					InResponseTo: resolveEnv.Body.ArtifactResolve.ID,
+					Version:      "2.0",
+					Issuer:       saml.NewIssuer(i.entityID),
+					Status: &saml.Status{
+						StatusCode: saml.StatusCode{
+							Value: "urn:oasis:names:tc:SAML:2.0:status:Success",
+						},
+					},
+				},
+				Response: *response,
+			},
 		},
 	}
-	artResponse.Response = *response
 
 	signature, err := i.signer.CreateSignature(response.Assertion)
 	// TODO confirm appropriate error response for this service

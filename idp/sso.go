@@ -187,35 +187,18 @@ func (i *IDP) DefaultRedirectSSOHandler() http.HandlerFunc {
 				return err
 			}
 
-			// check for cookie to see if user has a current session
-			if cookie, err := r.Cookie(i.cookieName); err == nil {
-				// Found a session cookie
-				if data, err := i.UserCache.Get(cookie.Value); err == nil {
-					// Cookie matched user in cache
-					user := &model.User{}
-					if err = proto.Unmarshal(data, user); err == nil {
-						log.Infof("found existing session for %s", user.Name)
-						return i.respond(saveableRequest, user, w, r)
-					}
-				}
+			// check for existing session
+			if user := i.getUserFromSession(r); user != nil {
+				return i.respond(saveableRequest, user, w, r)
 			}
 
 			// check to see if they presented a client cert
-			if clientCert, err := getCertFromRequest(r); err == nil {
-				user := &model.User{
-					Name:    getSubjectDN(clientCert.Subject),
-					Format:  "urn:oasis:names:tc:SAML:1.1:nameid-format:X509SubjectName",
-					Context: "urn:oasis:names:tc:SAML:2.0:ac:classes:X509",
-					IP:      getIP(r).String()}
-
-				// Add attributes
-				err = i.setUserAttributes(user)
-				if err != nil {
-					return err
-				}
-				log.Infof("successful PKI login for %s", user.Name)
+			if user, err := i.loginWithCert(r); user != nil {
 				return i.respond(saveableRequest, user, w, r)
+			} else if err != nil {
+				return err
 			}
+
 			// need to display the login form
 			data, err := proto.Marshal(saveableRequest)
 			if err != nil {
@@ -235,6 +218,60 @@ func (i *IDP) DefaultRedirectSSOHandler() http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 		}
 	}
+}
+
+func (i *IDP) loginWithCert(r *http.Request) (*model.User, error) {
+	// check to see if they presented a client cert
+	if clientCert, err := getCertFromRequest(r); err == nil {
+		user := &model.User{
+			Name:    getSubjectDN(clientCert.Subject),
+			Format:  "urn:oasis:names:tc:SAML:1.1:nameid-format:X509SubjectName",
+			Context: "urn:oasis:names:tc:SAML:2.0:ac:classes:X509",
+			IP:      getIP(r).String()}
+		// Add attributes
+		err = i.setUserAttributes(user)
+		if err != nil {
+			return nil, err
+		}
+		log.Infof("successful PKI login for %s", user.Name)
+		return user, nil
+	}
+	return nil, nil
+}
+
+func (i *IDP) loginWithPasswordForm(r *http.Request) (*model.User, error) {
+	userName := r.Form.Get("username")
+	if err := i.PasswordValidator.Validate(userName, r.Form.Get("password")); err != nil {
+		return nil, err
+	}
+	// They have provided the right password
+	user := &model.User{
+		Name:    userName,
+		Format:  "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified",
+		Context: "urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport",
+		IP:      getIP(r).String()}
+	// Add attributes
+	if err := i.setUserAttributes(user); err != nil {
+		return nil, err
+	}
+	log.Infof("successful password login for %s", user.Name)
+	return user, nil
+}
+
+func (i *IDP) getUserFromSession(r *http.Request) *model.User {
+	// check for cookie to see if user has a current session
+	if cookie, err := r.Cookie(i.cookieName); err == nil {
+		// Found a session cookie
+		if data, err := i.UserCache.Get(cookie.Value); err == nil {
+			// Cookie matched user in cache
+			user := &model.User{}
+			if err = proto.Unmarshal(data, user); err == nil {
+				log.Infof("found existing session for %s", user.Name)
+				return user
+			}
+		}
+	}
+	return nil
 }
 
 type dsaSignature struct {

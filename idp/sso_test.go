@@ -15,8 +15,16 @@
 package idp
 
 import (
+	"crypto/tls"
+	"crypto/x509"
+	"encoding/pem"
+	"net/http"
+	"net/http/httptest"
+	"net/url"
 	"testing"
 
+	"github.com/amdonov/lite-idp/model"
+	"github.com/golang/protobuf/proto"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 )
@@ -38,10 +46,104 @@ func TestIDP_DefaultRedirectSSOHandler(t *testing.T) {
 	})
 	i := &IDP{}
 	ts := getTestIDP(t, i)
+	defer ts.Close()
 	resp, err := ts.Client().Get(ts.URL + viper.GetString("sso-service-path") + "?SAMLRequest=fJFRi%2BIwEMe%2FSsh7mrS2Xhys0jsfTvBA1LvXI43pGrZN3cxU%2BvGX1RVcFnxMmN8w%2F99%2Fvhy7ll1cRN%2BHkqeJ4svFHE3XnqEa6BR27m1wSGy9Kvl%2FnU8b3UwykRa1FnlTWzGbZLWodZPnTWYLZTVn%2F%2B7bskRxtkYc3DogmUAlz1SqhZqJdHpQBagcilSoHJTibBt76m3f%2FvTh6MNLyYcYoDfoEYLpHAJZ2Fd%2FNpAlCurbEMLvw2Erqki%2BMZY4qxBdJN%2BHX33AoXNx7%2BLFW%2Fd3tyn5iegMUqbZj0QlKkmhKIqpPLpRWtO2tbGvnK0ckg%2BGrgG%2BAVppJc1AJxmdaTuUnUFyUZ4%2Fb5cf5jgbuzYgXC0%2Bj3HnHpHnhLkH5Lea4Oo3Lo5unMvHj9vra4uLdwAAAP%2F%2F&RelayState=ymktrbuodubogbc5gix6pyax5&SigAlg=http%3A%2F%2Fwww.w3.org%2F2000%2F09%2Fxmldsig%23rsa-sha1&Signature=FiWbe%2Fgui2UDb1FowmAudpNvX7ysQavigZ2j1C17E6TLYk9IsfV0nKY0shdKJZvBsceh5oGJAQDO5vUdLE29AUMdFvCYn1K90YI7Iu71ZBJdhh6veg6T5EW9cpQ%2FAalL66PU9J1IaF7vROElF0wJQNCMuMfwz1alug0d%2Fw49OtsSflZIIIQLYg9jRqIyoR4Qv4MdKLsYVJc5x3iyLNyu5tY01M5i5f%2FudgMxzGHg7hyM7AXbhJhBNMwuKxdC5A%2FIw72eFh0QIq%2Fb%2B%2BSgoMNpxCLtxnskk%2F5xoj3euNZntyKiL35VB6ZpXWku0uMd97ImRSrPgeRnXBltVcpiWLR1vg%3D%3D")
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer resp.Body.Close()
 	assert.Equal(t, 200, resp.StatusCode, "expected login page from sso")
+}
+
+const certPEM = `
+-----BEGIN CERTIFICATE-----
+MIIDujCCAqKgAwIBAgIIE31FZVaPXTUwDQYJKoZIhvcNAQEFBQAwSTELMAkGA1UE
+BhMCVVMxEzARBgNVBAoTCkdvb2dsZSBJbmMxJTAjBgNVBAMTHEdvb2dsZSBJbnRl
+cm5ldCBBdXRob3JpdHkgRzIwHhcNMTQwMTI5MTMyNzQzWhcNMTQwNTI5MDAwMDAw
+WjBpMQswCQYDVQQGEwJVUzETMBEGA1UECAwKQ2FsaWZvcm5pYTEWMBQGA1UEBwwN
+TW91bnRhaW4gVmlldzETMBEGA1UECgwKR29vZ2xlIEluYzEYMBYGA1UEAwwPbWFp
+bC5nb29nbGUuY29tMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEfRrObuSW5T7q
+5CnSEqefEmtH4CCv6+5EckuriNr1CjfVvqzwfAhopXkLrq45EQm8vkmf7W96XJhC
+7ZM0dYi1/qOCAU8wggFLMB0GA1UdJQQWMBQGCCsGAQUFBwMBBggrBgEFBQcDAjAa
+BgNVHREEEzARgg9tYWlsLmdvb2dsZS5jb20wCwYDVR0PBAQDAgeAMGgGCCsGAQUF
+BwEBBFwwWjArBggrBgEFBQcwAoYfaHR0cDovL3BraS5nb29nbGUuY29tL0dJQUcy
+LmNydDArBggrBgEFBQcwAYYfaHR0cDovL2NsaWVudHMxLmdvb2dsZS5jb20vb2Nz
+cDAdBgNVHQ4EFgQUiJxtimAuTfwb+aUtBn5UYKreKvMwDAYDVR0TAQH/BAIwADAf
+BgNVHSMEGDAWgBRK3QYWG7z2aLV29YG2u2IaulqBLzAXBgNVHSAEEDAOMAwGCisG
+AQQB1nkCBQEwMAYDVR0fBCkwJzAloCOgIYYfaHR0cDovL3BraS5nb29nbGUuY29t
+L0dJQUcyLmNybDANBgkqhkiG9w0BAQUFAAOCAQEAH6RYHxHdcGpMpFE3oxDoFnP+
+gtuBCHan2yE2GRbJ2Cw8Lw0MmuKqHlf9RSeYfd3BXeKkj1qO6TVKwCh+0HdZk283
+TZZyzmEOyclm3UGFYe82P/iDFt+CeQ3NpmBg+GoaVCuWAARJN/KfglbLyyYygcQq
+0SgeDh8dRKUiaW3HQSoYvTvdTuqzwK4CXsr3b5/dAOY8uMuG/IAR3FgwTbZ1dtoW
+RvOTa8hYiU6A475WuZKyEHcwnGYe57u2I2KbMgcKjPniocj4QzgYsVAVKW3IwaOh
+yE+vPxsiUkvQHdO2fojCkY8jg70jxM+gu59tPDNbw3Uh/2Ij310FgTHsnGQMyA==
+-----END CERTIFICATE-----`
+
+func TestIDP_loginWithCert(t *testing.T) {
+	block, _ := pem.Decode([]byte(certPEM))
+	if block == nil {
+		t.Fatal("failed to parse PEM block containing the public key")
+	}
+	cert, err := x509.ParseCertificate(block.Bytes)
+	if err != nil {
+		t.Fatal(err)
+	}
+	i := &IDP{}
+	ts := getTestIDP(t, i)
+	defer ts.Close()
+	req := httptest.NewRequest("GET", "/", nil)
+	// Act like we sent a cert
+	req.TLS = &tls.ConnectionState{
+		PeerCertificates: []*x509.Certificate{cert},
+	}
+	i.loginWithCert(req)
+}
+
+func TestIDP_getUserFromSession(t *testing.T) {
+	i := &IDP{}
+	ts := getTestIDP(t, i)
+	defer ts.Close()
+	req := httptest.NewRequest("GET", "/", nil)
+	assert.True(t, nil == i.getUserFromSession(req), "should not have returned a user")
+	req.AddCookie(&http.Cookie{
+		Name:     i.cookieName,
+		Path:     "/",
+		Value:    "12345",
+		Secure:   true,
+		HttpOnly: true,
+	})
+	user := &model.User{Name: "joe"}
+	data, err := proto.Marshal(user)
+	if err != nil {
+		t.Fatal(err)
+	}
+	i.UserCache.Set("12345", data)
+	i.getUserFromSession(req)
+	assert.Equal(t, user.Name, i.getUserFromSession(req).Name, "should have returned a user")
+}
+
+func TestIDP_loginWithPasswordForm(t *testing.T) {
+	i := &IDP{PasswordValidator: &simpleValidator{
+		map[string][]byte{"joe": []byte("$2a$10$FNvHN.0e5LcLUonmGX0CIOAAEKYYSrlZkyibHgq3sLo0SizPtRhEG")},
+	}}
+	getTestIDP(t, i).Close()
+	// Need to cache request before attempting a login
+	req := &model.AuthnRequest{
+		ID: "2134",
+	}
+	data, err := proto.Marshal(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	i.TempCache.Set("1234", data)
+	r := httptest.NewRequest("POST", "/ui/login.html", nil)
+	r.Form = url.Values{}
+	r.Form.Add("requestId", "1234")
+	r.Form.Add("username", "joe")
+	r.Form.Add("password", "password")
+	user, err := i.loginWithPasswordForm(r)
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Equal(t, "joe", user.Name, "user name doesn't match")
 }

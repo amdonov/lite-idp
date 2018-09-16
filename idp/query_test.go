@@ -12,6 +12,7 @@ import (
 func TestIDP_DefaultQueryHandler(t *testing.T) {
 	i := &IDP{}
 	ts := getTestIDP(t, i)
+	defer ts.Close()
 	in, err := os.Open(filepath.Join("testdata", "attribute-query-request.xml"))
 	if err != nil {
 		t.Fatal(err)

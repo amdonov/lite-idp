@@ -27,7 +27,7 @@ import (
 )
 
 func getCertFromRequest(r *http.Request) (*x509.Certificate, error) {
-	if len(r.TLS.PeerCertificates) == 0 {
+	if r.TLS == nil || len(r.TLS.PeerCertificates) == 0 {
 		return nil, errors.New("no certificate provided")
 	}
 	return r.TLS.PeerCertificates[0], nil
