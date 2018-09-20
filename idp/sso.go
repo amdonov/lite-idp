@@ -79,9 +79,12 @@ func (i *IDP) validateRequest(request *saml.AuthnRequest, r *http.Request) error
 	// Have to use the raw query as pointed out in the spec.
 	// https://docs.oasis-open.org/security/saml/v2.0/saml-bindings-2.0-os.pdf
 	// Line 621
+	return verifySignature(r.URL.RawQuery, r.Form.Get("SigAlg"), r.Form.Get("Signature"), sp)
+}
 
+func verifySignature(rawQuery, alg, expectedSig string, sp *ServiceProvider) error {
 	// Split up the parts
-	params := strings.Split(r.URL.RawQuery, "&")
+	params := strings.Split(rawQuery, "&")
 	pMap := make(map[string]string, len(params))
 	for i := range params {
 		parts := strings.Split(params[i], "=")
@@ -97,12 +100,14 @@ func (i *IDP) validateRequest(request *saml.AuthnRequest, r *http.Request) error
 	}
 	sigparts = append(sigparts, fmt.Sprintf("SigAlg=%s", pMap["SigAlg"]))
 	sig := []byte(strings.Join(sigparts, "&"))
+
+	fmt.Println("AARON - ", string(sig))
 	// Validate the signature
-	signature, err := base64.StdEncoding.DecodeString(r.Form.Get("Signature"))
+	signature, err := base64.StdEncoding.DecodeString(expectedSig)
 	if err != nil {
 		return err
 	}
-	switch r.Form.Get("SigAlg") {
+	switch alg {
 	case "http://www.w3.org/2009/xmldsig11#dsa-sha256":
 		sum := sha256Sum(sig)
 		return verifyDSA(sp, signature, sum)
@@ -116,11 +121,11 @@ func (i *IDP) validateRequest(request *saml.AuthnRequest, r *http.Request) error
 		sum := sha256Sum(sig)
 		return rsa.VerifyPKCS1v15(sp.publicKey.(*rsa.PublicKey), crypto.SHA256, sum, signature)
 	default:
-		return fmt.Errorf("unsupported signature algorithm, %s", r.Form.Get("SigAlg"))
+		return fmt.Errorf("unsupported signature algorithm, %s", alg)
 	}
 }
 
-func verifyDSA(sp ServiceProvider, signature, sum []byte) error {
+func verifyDSA(sp *ServiceProvider, signature, sum []byte) error {
 	dsaSig := new(dsaSignature)
 	if rest, err := asn1.Unmarshal(signature, dsaSig); err != nil {
 		return err

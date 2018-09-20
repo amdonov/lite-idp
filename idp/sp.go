@@ -15,7 +15,10 @@
 package idp
 
 import (
+	"crypto/x509"
+	"encoding/base64"
 	"encoding/xml"
+	"errors"
 	"io"
 
 	"github.com/amdonov/lite-idp/saml"
@@ -28,6 +31,19 @@ type ServiceProvider struct {
 	Certificate               string
 	// Could be an RSA or DSA public key
 	publicKey interface{}
+}
+
+func (sp *ServiceProvider) parseCertificate() error {
+	block, err := base64.StdEncoding.DecodeString(sp.Certificate)
+	if err != nil {
+		return errors.New("failed to parse PEM block containing the public key")
+	}
+	cert, err := x509.ParseCertificate(block)
+	if err != nil {
+		return errors.New("failed to parse certificate: " + err.Error())
+	}
+	sp.publicKey = cert.PublicKey
+	return nil
 }
 
 // AssertionConsumerService is a SAML assertion consumer service

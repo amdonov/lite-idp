@@ -16,8 +16,6 @@ package idp
 
 import (
 	"crypto/tls"
-	"crypto/x509"
-	"encoding/base64"
 	"errors"
 	"fmt"
 	"net"
@@ -63,7 +61,7 @@ type IDP struct {
 	attributeServiceLocation          string
 	singleSignOnServiceLocation       string
 	postTemplate                      *template.Template
-	sps                               map[string]ServiceProvider
+	sps                               map[string]*ServiceProvider
 }
 
 // Handler returns the IDP's http.Handler including all sub routes or an error
@@ -118,21 +116,15 @@ func (i *IDP) configureConstants() error {
 }
 
 func (i *IDP) configureSPs() error {
-	sps := []ServiceProvider{}
+	sps := []*ServiceProvider{}
 	if err := viper.UnmarshalKey("sps", &sps); err != nil {
 		return err
 	}
-	i.sps = make(map[string]ServiceProvider, len(sps))
+	i.sps = make(map[string]*ServiceProvider, len(sps))
 	for j, sp := range sps {
-		block, err := base64.StdEncoding.DecodeString(sp.Certificate)
-		if err != nil {
-			return errors.New("failed to parse PEM block containing the public key")
+		if err:=sp.parseCertificate();err!=nil {
+			return err
 		}
-		cert, err := x509.ParseCertificate(block)
-		if err != nil {
-			return errors.New("failed to parse certificate: " + err.Error())
-		}
-		sps[j].publicKey = cert.PublicKey
 		i.sps[sp.EntityID] = sps[j]
 	}
 
