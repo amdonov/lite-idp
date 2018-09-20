@@ -88,17 +88,18 @@ func (i *IDP) DefaultPasswordLoginHandler() http.HandlerFunc {
 			if err != nil {
 				return err
 			}
-			if user, err := i.loginWithPasswordForm(r); user != nil {
+			user, err := i.loginWithPasswordForm(r)
+			if user != nil {
 				return i.respond(req, user, w, r)
-			} else {
-				if err == ErrInvalidPassword {
-					http.Redirect(w, r, fmt.Sprintf("/ui/login.html?requestId=%s&error=%s",
-						url.QueryEscape(requestID), url.QueryEscape("Invalid login or password. Please try again.")),
-						http.StatusFound)
-					return nil
-				}
-				return err
 			}
+			if err == ErrInvalidPassword {
+				i.Auditor.LogSuccess(user)
+				http.Redirect(w, r, fmt.Sprintf("/ui/login.html?requestId=%s&error=%s",
+					url.QueryEscape(requestID), url.QueryEscape("Invalid login or password. Please try again.")),
+					http.StatusFound)
+				return nil
+			}
+			return err
 		}()
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)

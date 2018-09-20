@@ -51,7 +51,7 @@ type IDP struct {
 	RedirectSSOHandler     http.HandlerFunc
 	PasswordLoginHandler   http.HandlerFunc
 	QueryHandler           http.HandlerFunc
-
+	Auditor Auditor
 	handler http.Handler
 	signer  xmlsig.Signer
 
@@ -69,6 +69,9 @@ type IDP struct {
 // Handler returns the IDP's http.Handler including all sub routes or an error
 func (i *IDP) Handler() (http.Handler, error) {
 	if i.handler == nil {
+		if i.Auditor == nil {
+			i.Auditor = DefaultAuditor()
+		}
 		if err := i.configureConstants(); err != nil {
 			return nil, err
 		}

@@ -233,6 +233,7 @@ func (i *IDP) loginWithCert(r *http.Request) (*model.User, error) {
 		if err != nil {
 			return nil, err
 		}
+		i.Auditor.LogSuccess(user, CertificateLogin)
 		log.Infof("successful PKI login for %s", user.Name)
 		return user, nil
 	}
@@ -254,6 +255,7 @@ func (i *IDP) loginWithPasswordForm(r *http.Request) (*model.User, error) {
 	if err := i.setUserAttributes(user); err != nil {
 		return nil, err
 	}
+	i.Auditor.LogSuccess(user, PasswordLogin)
 	log.Infof("successful password login for %s", user.Name)
 	return user, nil
 }

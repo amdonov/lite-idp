@@ -38,6 +38,7 @@ type AssertionConsumerService struct {
 	Location  string
 }
 
+// ReadSPMetadata reads XML metadata from a reader
 func ReadSPMetadata(metadata io.Reader) (*ServiceProvider, error) {
 	decoder := xml.NewDecoder(metadata)
 	sp := &saml.SPEntityDescriptor{}
