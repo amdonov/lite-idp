@@ -100,8 +100,6 @@ func verifySignature(rawQuery, alg, expectedSig string, sp *ServiceProvider) err
 	}
 	sigparts = append(sigparts, fmt.Sprintf("SigAlg=%s", pMap["SigAlg"]))
 	sig := []byte(strings.Join(sigparts, "&"))
-
-	fmt.Println("AARON - ", string(sig))
 	// Validate the signature
 	signature, err := base64.StdEncoding.DecodeString(expectedSig)
 	if err != nil {
