@@ -93,7 +93,6 @@ func (i *IDP) DefaultPasswordLoginHandler() http.HandlerFunc {
 				return i.respond(req, user, w, r)
 			}
 			if err == ErrInvalidPassword {
-				i.Auditor.LogSuccess(user)
 				http.Redirect(w, r, fmt.Sprintf("/ui/login.html?requestId=%s&error=%s",
 					url.QueryEscape(requestID), url.QueryEscape("Invalid login or password. Please try again.")),
 					http.StatusFound)
