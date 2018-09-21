@@ -96,7 +96,7 @@ func TestIDP_loginWithCert(t *testing.T) {
 	req.TLS = &tls.ConnectionState{
 		PeerCertificates: []*x509.Certificate{cert},
 	}
-	i.loginWithCert(req)
+	i.loginWithCert(req, nil)
 }
 
 func TestIDP_getUserFromSession(t *testing.T) {
@@ -141,7 +141,7 @@ func TestIDP_loginWithPasswordForm(t *testing.T) {
 	r.Form.Add("requestId", "1234")
 	r.Form.Add("username", "joe")
 	r.Form.Add("password", "password")
-	user, err := i.loginWithPasswordForm(r)
+	user, err := i.loginWithPasswordForm(r, req)
 	if err != nil {
 		t.Fatal(err)
 	}

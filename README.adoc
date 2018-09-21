@@ -145,7 +145,7 @@ The IdP enables retrieval of user attributes from multiple sources through the A
 .AttributeSource interface
 ----
 type AttributeSource interface {
-	AddAttributes(*model.User) error
+	AddAttributes(*model.User, *model.AuthnRequest) error
 }
 ----
 

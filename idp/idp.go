@@ -49,9 +49,9 @@ type IDP struct {
 	RedirectSSOHandler     http.HandlerFunc
 	PasswordLoginHandler   http.HandlerFunc
 	QueryHandler           http.HandlerFunc
-	Auditor Auditor
-	handler http.Handler
-	signer  xmlsig.Signer
+	Auditor                Auditor
+	handler                http.Handler
+	signer                 xmlsig.Signer
 
 	// properties set or derived from configuration settings
 	cookieName                        string
@@ -122,7 +122,7 @@ func (i *IDP) configureSPs() error {
 	}
 	i.sps = make(map[string]*ServiceProvider, len(sps))
 	for j, sp := range sps {
-		if err:=sp.parseCertificate();err!=nil {
+		if err := sp.parseCertificate(); err != nil {
 			return err
 		}
 		i.sps[sp.EntityID] = sps[j]
@@ -247,9 +247,9 @@ func getIP(request *http.Request) net.IP {
 	return net.ParseIP(addr)
 }
 
-func (i *IDP) setUserAttributes(user *model.User) error {
+func (i *IDP) setUserAttributes(user *model.User, req *model.AuthnRequest) error {
 	for _, source := range i.AttributeSources {
-		if err := source.AddAttributes(user); err != nil {
+		if err := source.AddAttributes(user, req); err != nil {
 			return err
 		}
 	}

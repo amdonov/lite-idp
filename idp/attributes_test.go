@@ -40,7 +40,7 @@ func TestNewAttributeSource(t *testing.T) {
 		t.Fatal(err)
 	}
 	user := &model.User{Name: "john"}
-	if err = attSrc.AddAttributes(user); err != nil {
+	if err = attSrc.AddAttributes(user, nil); err != nil {
 		t.Fatal(err)
 	}
 	assert.Equal(t, 3, len(user.Attributes), "expected 3 attributes")

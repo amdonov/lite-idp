@@ -196,7 +196,7 @@ func (i *IDP) DefaultRedirectSSOHandler() http.HandlerFunc {
 			}
 
 			// check to see if they presented a client cert
-			if user, err := i.loginWithCert(r); user != nil {
+			if user, err := i.loginWithCert(r, saveableRequest); user != nil {
 				return i.respond(saveableRequest, user, w, r)
 			} else if err != nil {
 				return err
@@ -223,7 +223,7 @@ func (i *IDP) DefaultRedirectSSOHandler() http.HandlerFunc {
 	}
 }
 
-func (i *IDP) loginWithCert(r *http.Request) (*model.User, error) {
+func (i *IDP) loginWithCert(r *http.Request, authnReq *model.AuthnRequest) (*model.User, error) {
 	// check to see if they presented a client cert
 	if clientCert, err := getCertFromRequest(r); err == nil {
 		user := &model.User{
@@ -232,18 +232,18 @@ func (i *IDP) loginWithCert(r *http.Request) (*model.User, error) {
 			Context: "urn:oasis:names:tc:SAML:2.0:ac:classes:X509",
 			IP:      getIP(r).String()}
 		// Add attributes
-		err = i.setUserAttributes(user)
+		err = i.setUserAttributes(user, authnReq)
 		if err != nil {
 			return nil, err
 		}
-		i.Auditor.LogSuccess(user, CertificateLogin)
+		i.Auditor.LogSuccess(user, authnReq, CertificateLogin)
 		log.Infof("successful PKI login for %s", user.Name)
 		return user, nil
 	}
 	return nil, nil
 }
 
-func (i *IDP) loginWithPasswordForm(r *http.Request) (*model.User, error) {
+func (i *IDP) loginWithPasswordForm(r *http.Request, authnReq *model.AuthnRequest) (*model.User, error) {
 	userName := r.Form.Get("username")
 	if err := i.PasswordValidator.Validate(userName, r.Form.Get("password")); err != nil {
 		return nil, err
@@ -255,10 +255,10 @@ func (i *IDP) loginWithPasswordForm(r *http.Request) (*model.User, error) {
 		Context: "urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport",
 		IP:      getIP(r).String()}
 	// Add attributes
-	if err := i.setUserAttributes(user); err != nil {
+	if err := i.setUserAttributes(user, authnReq); err != nil {
 		return nil, err
 	}
-	i.Auditor.LogSuccess(user, PasswordLogin)
+	i.Auditor.LogSuccess(user, authnReq, PasswordLogin)
 	log.Infof("successful password login for %s", user.Name)
 	return user, nil
 }

@@ -21,7 +21,7 @@ import (
 
 // AttributeSource allows implementations to retrieve user attributes from any upstream source such as a database, LDAP, or Web service.
 type AttributeSource interface {
-	AddAttributes(*model.User) error
+	AddAttributes(*model.User, *model.AuthnRequest) error
 }
 
 type simpleSource struct {
@@ -34,7 +34,7 @@ type UserAttributes struct {
 	Attributes map[string][]string
 }
 
-func (ss *simpleSource) AddAttributes(user *model.User) error {
+func (ss *simpleSource) AddAttributes(user *model.User, _ *model.AuthnRequest) error {
 	if atts, ok := ss.users[user.Name]; ok {
 		user.AppendAttributes(atts)
 	}

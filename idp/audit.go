@@ -16,12 +16,12 @@ const (
 
 // Auditor is responsible for capturing login events
 type Auditor interface {
-	LogSuccess(*model.User, LoginType)
+	LogSuccess(*model.User, *model.AuthnRequest, LoginType)
 }
 
 type auditor struct{}
 
-func (a *auditor) LogSuccess(u *model.User, t LoginType) {
+func (a *auditor) LogSuccess(*model.User, *model.AuthnRequest, LoginType) {
 	// Default audit doesn't do anything
 }
 

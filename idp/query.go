@@ -24,7 +24,7 @@ func (i *IDP) DefaultQueryHandler() http.HandlerFunc {
 				Name:   query.Subject.NameID.Value,
 				Format: query.Subject.NameID.Format,
 			}
-			if err := i.setUserAttributes(user); err != nil {
+			if err := i.setUserAttributes(user, nil); err != nil {
 				return err
 			}
 			response := i.makeResponse(query.ID, query.Issuer, user)

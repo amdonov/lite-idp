@@ -88,7 +88,7 @@ func (i *IDP) DefaultPasswordLoginHandler() http.HandlerFunc {
 			if err != nil {
 				return err
 			}
-			user, err := i.loginWithPasswordForm(r)
+			user, err := i.loginWithPasswordForm(r, req)
 			if user != nil {
 				return i.respond(req, user, w, r)
 			}
