@@ -7,8 +7,9 @@
     background-size: contain;
 }
 
-.login-pf body {
-    background: #030303;
+.login-pf {
+    background: #030303; 
+    background-image: none;
 }
 
 #badge {

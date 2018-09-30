@@ -10,9 +10,7 @@
   "author": "Aaron Donovan <donovan_aaron@bah.com> (http://gitlab.dpp.gfclab.com)",
   "license": "Apache-2.0",
   "dependencies": {
-    "bootstrap": "^3.3.7",
-    "jquery": "^3.2.1",
-    "patternfly": "^3.27.1"
+    "patternfly": "^3.54.8"
   },
   "devDependencies": {
     "css-loader": "^0.28.7",
