@@ -3,6 +3,7 @@
 https://goreportcard.com/report/github.com/amdonov/lite-idp[image:https://goreportcard.com/badge/github.com/amdonov/lite-idp[Go Report Card]]
 https://travis-ci.org/amdonov/lite-idp[image:https://travis-ci.org/amdonov/lite-idp.svg?branch=master[Travis CI]]
 https://coveralls.io/github/amdonov/lite-idp?branch=master[image:https://coveralls.io/repos/github/amdonov/lite-idp/badge.svg?branch=master[Coverage Status]]
+image:https://quay.io/repository/amdonov/lite-idp/status["Docker Repository on Quay", link="https://quay.io/repository/amdonov/lite-idp"]
 
 image::logo.png[]
 
