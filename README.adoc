@@ -112,7 +112,7 @@ import "github.com/amdonov/lite-idp/idp"
 
 As of version 0.3.0 it's possible to add lite-idp commands
 to another cobra based application and customize the IDP struct as well. The cluster 
-command makes use of this feature and can be used an an example.
+command makes use of this feature and can be used as an example.
 
 ----
 
