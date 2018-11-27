@@ -49,6 +49,7 @@ type IDP struct {
 	RedirectSSOHandler     http.HandlerFunc
 	PasswordLoginHandler   http.HandlerFunc
 	QueryHandler           http.HandlerFunc
+	UIHandler              http.Handler
 	Auditor                Auditor
 	handler                http.Handler
 	signer                 xmlsig.Signer
@@ -231,10 +232,12 @@ func (i *IDP) buildRoutes() error {
 	}
 	r.HandlerFunc("POST", viper.GetString("attribute-service-path"), i.QueryHandler)
 
-	// Serve up UI
-	userInterface := ui.UI()
-	r.Handler("GET", "/ui/*path", userInterface)
-	r.Handler("GET", "/favicon.ico", userInterface)
+	// Handle UI rendering
+	if i.UIHandler == nil {
+		i.UIHandler = ui.UI()
+	}
+	r.Handler("GET", "/ui/*path", i.UIHandler)
+	r.Handler("GET", "/favicon.ico", i.UIHandler)
 
 	return nil
 }
