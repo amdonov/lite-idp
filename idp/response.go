@@ -52,6 +52,8 @@ func (i *IDP) respond(authRequest *model.AuthnRequest, user *model.User,
 		return i.sendArtifactResponse(authRequest, user, w, r)
 	case "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST":
 		return i.sendPostResponse(authRequest, user, w, r)
+	case "urn:oasis:names:tc:SAML:2.0:bindings:PAOS":
+		return i.sendECPResponse(authRequest, user, w, r)
 	default:
 		return errors.New("unsupported protocol binding")
 	}

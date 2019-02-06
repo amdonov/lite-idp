@@ -24,6 +24,7 @@ import (
 	"text/template"
 
 	"github.com/amdonov/lite-idp/model"
+	"github.com/amdonov/lite-idp/sign"
 	"github.com/amdonov/lite-idp/store"
 	"github.com/amdonov/lite-idp/ui"
 	"github.com/amdonov/xmlsig"
@@ -47,12 +48,14 @@ type IDP struct {
 	MetadataHandler        http.HandlerFunc
 	ArtifactResolveHandler http.HandlerFunc
 	RedirectSSOHandler     http.HandlerFunc
+	ECPHandler             http.HandlerFunc
 	PasswordLoginHandler   http.HandlerFunc
 	QueryHandler           http.HandlerFunc
 	UIHandler              http.Handler
 	Auditor                Auditor
 	handler                http.Handler
-	signer                 xmlsig.Signer
+	signer                 sign.Signer
+	validator              sign.Validator
 
 	// properties set or derived from configuration settings
 	cookieName                        string
@@ -61,6 +64,7 @@ type IDP struct {
 	artifactResolutionServiceLocation string
 	attributeServiceLocation          string
 	singleSignOnServiceLocation       string
+	ecpServiceLocation                string
 	postTemplate                      *template.Template
 	sps                               map[string]*ServiceProvider
 }
@@ -113,6 +117,7 @@ func (i *IDP) configureConstants() error {
 	i.artifactResolutionServiceLocation = fmt.Sprintf("https://%s%s", serverName, viper.GetString("artifact-service-path"))
 	i.attributeServiceLocation = fmt.Sprintf("https://%s%s", serverName, viper.GetString("attribute-service-path"))
 	i.singleSignOnServiceLocation = fmt.Sprintf("https://%s%s", serverName, viper.GetString("sso-service-path"))
+	i.ecpServiceLocation = fmt.Sprintf("https://%s%s", serverName, viper.GetString("ecp-service-path"))
 	return nil
 }
 
@@ -149,6 +154,8 @@ func (i *IDP) configureCrypto() error {
 		DigestAlgorithm:    viper.GetString("digest-algorithm"),
 	})
 	i.signer = signer
+
+	i.validator = sign.NewValidator()
 	return err
 }
 
@@ -219,6 +226,12 @@ func (i *IDP) buildRoutes() error {
 		i.RedirectSSOHandler = i.DefaultRedirectSSOHandler()
 	}
 	r.HandlerFunc("GET", viper.GetString("sso-service-path"), i.RedirectSSOHandler)
+
+	// Handle ECP requests
+	if i.ECPHandler == nil {
+		i.ECPHandler = i.DefaultECPHandler()
+	}
+	r.HandlerFunc("POST", viper.GetString("ecp-service-path"), i.ECPHandler)
 
 	// Handle password logins
 	if i.PasswordLoginHandler == nil {

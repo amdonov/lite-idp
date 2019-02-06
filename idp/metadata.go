@@ -54,10 +54,18 @@ func (i *IDP) DefaultMetadataHandler() (http.HandlerFunc, error) {
 				Index: 1,
 			},
 			NameIDFormat: "urn:oasis:names:tc:SAML:1.1:nameid-format:X509SubjectName",
-			SingleSignOnService: saml.SingleSignOnService{
-				Service: saml.Service{
-					Binding:  "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect",
-					Location: i.singleSignOnServiceLocation,
+			SingleSignOnService: []saml.SingleSignOnService{
+				saml.SingleSignOnService{
+					Service: saml.Service{
+						Binding:  "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect",
+						Location: i.singleSignOnServiceLocation,
+					},
+				},
+				saml.SingleSignOnService{
+					Service: saml.Service{
+						Binding:  "urn:oasis:names:tc:SAML:2.0:bindings:SOAP",
+						Location: i.ecpServiceLocation,
+					},
 				},
 			},
 		},
