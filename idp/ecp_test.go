@@ -27,7 +27,8 @@ import (
 
 func Test_sendECPResponse(t *testing.T) {
 	i := &IDP{}
-	getTestIDP(t, i)
+	ts := getTestIDP(t, i)
+	defer ts.Close()
 
 	var b bytes.Buffer
 	if err := i.sendECPResponse(&model.AuthnRequest{

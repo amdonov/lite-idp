@@ -225,23 +225,21 @@ func (i *IDP) DefaultRedirectSSOHandler() http.HandlerFunc {
 
 func (i *IDP) loginWithCert(r *http.Request, authnReq *model.AuthnRequest) (*model.User, error) {
 	// check to see if they presented a client cert
-	clientCert, err := getCertFromRequest(r)
-	if err != nil {
-		return nil, err
+	if clientCert, err := getCertFromRequest(r); err == nil {
+		user := &model.User{
+			Name:    getSubjectDN(clientCert.Subject),
+			Format:  "urn:oasis:names:tc:SAML:1.1:nameid-format:X509SubjectName",
+			Context: "urn:oasis:names:tc:SAML:2.0:ac:classes:X509",
+			IP:      getIP(r).String()}
+		// Add attributes
+		if err := i.setUserAttributes(user, authnReq); err != nil {
+			return nil, err
+		}
+		i.Auditor.LogSuccess(user, authnReq, CertificateLogin)
+		log.Infof("successful PKI login for %s", user.Name)
+		return user, nil
 	}
-	user := &model.User{
-		Name:    getSubjectDN(clientCert.Subject),
-		Format:  "urn:oasis:names:tc:SAML:1.1:nameid-format:X509SubjectName",
-		Context: "urn:oasis:names:tc:SAML:2.0:ac:classes:X509",
-		IP:      getIP(r).String()}
-	// Add attributes
-	if err := i.setUserAttributes(user, authnReq); err != nil {
-		return nil, err
-	}
-	i.Auditor.LogSuccess(user, authnReq, CertificateLogin)
-	log.Infof("successful PKI login for %s", user.Name)
-	return user, nil
-
+	return nil, nil
 }
 
 func (i *IDP) loginWithPasswordForm(r *http.Request, authnReq *model.AuthnRequest) (*model.User, error) {

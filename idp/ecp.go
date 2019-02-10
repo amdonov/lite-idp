@@ -29,10 +29,9 @@ import (
 
 func (i *IDP) DefaultECPHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-
 		// We require transport authentication rather than message authentication
 		tlsCert, err := getCertFromRequest(r)
-		if err != nil {
+		if tlsCert == nil || err != nil {
 			http.Error(w, "403 Forbidden", http.StatusForbidden)
 			return
 		}
