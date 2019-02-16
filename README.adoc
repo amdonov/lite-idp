@@ -20,6 +20,7 @@ The identity provider has the following features.
 * HTTP Redirect Binding
 * HTTP POST Binding - responses only not for requests
 * HTTP Artifact Binding
+* Reverse SOAP (PAOS) binding
 * SAML Metadata Generation
 * SAML Attribute Query
 * X.509 Certificate Authentication
