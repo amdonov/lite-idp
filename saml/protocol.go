@@ -62,6 +62,35 @@ type ArtifactResponse struct {
 	Response Response
 }
 
+type ECPResponseEnvelope struct {
+	XMLName xml.Name `xml:"http://schemas.xmlsoap.org/soap/envelope/ Envelope"`
+	Header  ECPResponseHeader
+	Body    ECPResponseBody
+}
+
+type ECPResponseHeader struct {
+	XMLName                 xml.Name `xml:"http://schemas.xmlsoap.org/soap/envelope/ Header"`
+	ECPResponse             ECPResponse
+	ECPRequestAuthenticated ECPRequestAuthenticated
+}
+
+type ECPResponse struct {
+	XMLName                     xml.Name `xml:"urn:oasis:names:tc:SAML:2.0:profiles:SSO:ecp Response"`
+	Actor                       string   `xml:"http://schemas.xmlsoap.org/soap/envelope/ actor,attr"`
+	MustUnderstand              int      `xml:"http://schemas.xmlsoap.org/soap/envelope/ mustUnderstand,attr"`
+	AssertionConsumerServiceURL string   `xml:",attr"`
+}
+
+type ECPRequestAuthenticated struct {
+	XMLName xml.Name `xml:"urn:oasis:names:tc:SAML:2.0:profiles:SSO:ecp RequestAuthenticated"`
+	Actor   string   `xml:"http://schemas.xmlsoap.org/soap/envelope/ actor,attr"`
+}
+
+type ECPResponseBody struct {
+	XMLName  xml.Name `xml:"http://schemas.xmlsoap.org/soap/envelope/ Body"`
+	Response Response
+}
+
 type Response struct {
 	StatusResponseType
 	XMLName      xml.Name `xml:"urn:oasis:names:tc:SAML:2.0:protocol Response"`
@@ -95,4 +124,20 @@ type StatusResponseType struct {
 	Destination  string `xml:",attr,omitempty"`
 	InResponseTo string `xml:",attr"`
 	Status       *Status
+}
+
+type SOAPFaultEnvelope struct {
+	XMLName xml.Name `xml:"http://schemas.xmlsoap.org/soap/envelope/ Envelope"`
+	Body    SOAPFaultBody
+}
+
+type SOAPFaultBody struct {
+	XMLName xml.Name `xml:"http://schemas.xmlsoap.org/soap/envelope/ Body"`
+	Fault   SOAPFault
+}
+
+type SOAPFault struct {
+	XMLName xml.Name `xml:"http://schemas.xmlsoap.org/soap/envelope/ Fault"`
+	Code    string   `xml:",faultcode"`
+	String  string   `xml:",faultstring"`
 }

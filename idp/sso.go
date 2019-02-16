@@ -232,8 +232,7 @@ func (i *IDP) loginWithCert(r *http.Request, authnReq *model.AuthnRequest) (*mod
 			Context: "urn:oasis:names:tc:SAML:2.0:ac:classes:X509",
 			IP:      getIP(r).String()}
 		// Add attributes
-		err = i.setUserAttributes(user, authnReq)
-		if err != nil {
+		if err := i.setUserAttributes(user, authnReq); err != nil {
 			return nil, err
 		}
 		i.Auditor.LogSuccess(user, authnReq, CertificateLogin)

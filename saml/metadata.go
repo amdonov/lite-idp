@@ -45,7 +45,7 @@ type IDPSSODescriptor struct {
 	KeyDescriptor              KeyDescriptor
 	ArtifactResolutionService  ArtifactResolutionService
 	NameIDFormat               string `xml:"NameIDFormat"`
-	SingleSignOnService        SingleSignOnService
+	SingleSignOnService        []SingleSignOnService
 }
 
 type Service struct {
