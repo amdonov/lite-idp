@@ -33,7 +33,12 @@ func (s *idpUI) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		s.h.ServeHTTP(w, req)
 		return
 	}
-	// Encourage caching of UI
-	w.Header().Add("Cache-Control", "public, max-age=31536000")
+	if "/ui/login.html" == req.URL.Path {
+		// 5 minute cache for the login HTML page
+		w.Header().Add("Cache-Control", "public, max-age=600")
+	} else {
+		// Encourage caching of UI
+		w.Header().Add("Cache-Control", "public, max-age=31536000")
+	}
 	s.prefixHandler.ServeHTTP(w, req)
 }
