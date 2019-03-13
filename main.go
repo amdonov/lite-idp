@@ -47,12 +47,18 @@ func init() {
 
 // initConfig reads in config file and ENV variables if set.
 func initConfig() {
-	viper.AddConfigPath("/etc/lite-idp")
-	viper.AddConfigPath(".")
 	viper.SetConfigName("config")
 
 	viper.AutomaticEnv() // read in environment variables that match
 	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
+
+	configPath := viper.GetString("config-path")
+	if configPath != "" {
+		viper.AddConfigPath(configPath)
+	} else {
+		viper.AddConfigPath("/etc/lite-idp")
+		viper.AddConfigPath(".")
+	}
 
 	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err == nil {
