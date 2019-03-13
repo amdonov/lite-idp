@@ -1,9 +1,25 @@
 package ui
 
-import "net/http"
+import (
+	"fmt"
+	"net/http"
+
+	"github.com/spf13/viper"
+)
 
 func UI() http.Handler {
-	h := http.FileServer(assetFS())
+	assetsPath := viper.GetString("assets-path")
+
+	var filesystem http.FileSystem
+	if assetsPath != "" {
+		fmt.Println("using ui assets path:", assetsPath)
+		filesystem = http.Dir(assetsPath)
+	} else {
+		fmt.Println("using the built-in ui assets")
+		filesystem = assetFS()
+	}
+
+	h := http.FileServer(filesystem)
 	return &idpUI{h, http.StripPrefix("/ui/", h)}
 }
 
