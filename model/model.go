@@ -24,6 +24,7 @@ package model
 import (
 	"github.com/amdonov/lite-idp/saml"
 	"github.com/golang/protobuf/ptypes"
+	"github.com/spf13/viper"
 )
 
 func (u *User) AppendAttributes(atts []*Attribute) {
@@ -47,7 +48,7 @@ func (u *User) AttributeStatement() *saml.AttributeStatement {
 		att := saml.Attribute{
 			FriendlyName:   val.Name,
 			Name:           val.Name,
-			NameFormat:     "urn:oasis:names:tc:SAML:2.0:attrname-format:basic",
+			NameFormat:     viper.GetString("saml-attribute-name-format"),
 			AttributeValue: attVals,
 		}
 		stmt.Attribute = append(stmt.Attribute, att)

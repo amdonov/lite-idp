@@ -34,4 +34,5 @@ func init() {
 	viper.SetDefault("user-cache-duration", "8h")
 	viper.SetDefault("signature-algorithm", "")
 	viper.SetDefault("digest-algorithm", "http://www.w3.org/2001/04/xmlenc#sha256")
+	viper.SetDefault("saml-attribute-name-format", "urn:oasis:names:tc:SAML:2.0:attrname-format:basic")
 }
