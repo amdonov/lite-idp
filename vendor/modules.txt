@@ -12,6 +12,8 @@ github.com/allegro/bigcache/queue
 github.com/amdonov/xmlsig
 # github.com/andybalholm/cascadia v1.0.0
 github.com/andybalholm/cascadia
+# github.com/beevik/etree v1.1.0
+github.com/beevik/etree
 # github.com/davecgh/go-spew v1.1.1
 github.com/davecgh/go-spew/spew
 # github.com/elazarl/go-bindata-assetfs v1.0.0
@@ -55,6 +57,8 @@ github.com/hashicorp/hcl/json/token
 github.com/inconshreveable/mousetrap
 # github.com/julienschmidt/httprouter v0.0.0-20150421170007-8c199fb6259f
 github.com/julienschmidt/httprouter
+# github.com/ma314smith/signedxml v0.0.0-20161222022618-9781f7e0c2f1
+github.com/ma314smith/signedxml
 # github.com/magiconair/properties v1.8.0
 github.com/magiconair/properties
 # github.com/mitchellh/mapstructure v1.0.0
