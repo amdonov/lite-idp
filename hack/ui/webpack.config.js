@@ -1,60 +1,66 @@
-var path = require('path');
-var webpack = require('webpack');
-
-var ExtractTextPlugin = require('extract-text-webpack-plugin');
-var OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin');
-var HtmlWebpackPlugin = require('html-webpack-plugin');
+const path = require('path');
+const webpack = require('webpack');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const CleanWebpackPlugin = require('clean-webpack-plugin');
+const UglifyJsPlugin = require("uglifyjs-webpack-plugin");
+const MiniCssExtractPlugin = require("mini-css-extract-plugin");
+const OptimizeCSSAssetsPlugin = require("optimize-css-assets-webpack-plugin");
 module.exports = {
-    entry: "./index.js",
-    output: {
-        path: path.resolve(__dirname, 'dist'),
-        filename: "bundle-[hash].js"
-    },
-    devServer: {
-        contentBase: path.join(__dirname, "dist"),
-        compress: true,
-        port: 9000
-    },
-    module: {
-        loaders: [
-            // Include all CSS
-            {
-                test: /\.css$/,
-                use: ExtractTextPlugin.extract({
-                    use: 'css-loader'
-                })
-            },
-            // Reference images and fonts by hash to enable long term caching
-            {
-                test: /\.(woff|woff2|ttf|eot|svg|gif|png|jpg)(\?v=[0-9]\.[0-9]\.[0-9])?$/,
-                loader: "file-loader?&name=media/[hash].[ext]"
-            }
-        ]
-    },
-    plugins: [
-        new webpack.optimize.UglifyJsPlugin({
-            minimize: true
-        }),
-        new webpack.ProvidePlugin({
-            $: 'jquery',
-            jQuery: 'jquery',
-        }),
-        new HtmlWebpackPlugin({
-            template: 'login.html',
-            inject: 'body',
-            filename: 'login.html',
-            minify: {
-                collapseWhitespace: true,
-                removeComments: true
-            }
-        }),
-        new ExtractTextPlugin("styles-[hash].css"),
-        new OptimizeCssAssetsPlugin({
-            cssProcessorOptions: {
-                discardComments: {
-                    removeAll: true
-                }
-            }
-        })
+  mode: 'production',
+  entry: './index.js',
+  optimization: {
+    minimizer: [
+      new UglifyJsPlugin({
+        cache: true,
+        parallel: true,
+        sourceMap: false
+      }),
+      new OptimizeCSSAssetsPlugin({})
     ]
+  },
+  plugins: [
+    new MiniCssExtractPlugin({
+      filename: "styles-[hash].css",
+      chunkFilename: "[id].css"
+    }),
+    new CleanWebpackPlugin(),
+    new webpack.ProvidePlugin({
+      $: 'jquery',
+      jQuery: 'jquery',
+    }),
+    new HtmlWebpackPlugin({
+      template: 'login.html',
+      inject: 'body',
+      filename: 'login.html',
+      minify: {
+        collapseWhitespace: true,
+        removeComments: true
+      }
+
+    })
+  ],
+  output: {
+    filename: 'bundle-[hash].js',
+    path: path.resolve(__dirname, 'dist')
+  },
+  devServer: {
+    contentBase: './dist'
+  },
+  module: {
+    rules: [{
+        test: /\.css$/,
+        use: [
+          MiniCssExtractPlugin.loader,
+          "css-loader"
+        ]
+      },
+      {
+        test: /\.(woff|woff2|ttf|eot|svg|gif|png|jpg)(\?v=[0-9]\.[0-9]\.[0-9])?$/,
+        use: [
+          'file-loader?&name=media/[hash].[ext]'
+        ]
+      }
+    ]
+  }
 };
+
