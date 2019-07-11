@@ -43,9 +43,9 @@ func TestNewAuthnRequest(t *testing.T) {
 func TestUser_AttributeStatement(t *testing.T) {
 	user := &User{Name: "joe"}
 	user.AppendAttributes([]*Attribute{
-		{"age", []string{"9"}},
-		{"sn", []string{"Mama"}},
-		{"email", []string{"joe@gmail.com"}},
+		{Name: "age", Value: []string{"9"}},
+		{Name: "sn", Value: []string{"Mama"}},
+		{Name: "email", Value: []string{"joe@gmail.com"}},
 	})
 	statement := user.AttributeStatement()
 	assert.Equal(t, 3, len(statement.Attribute), "expected 3 attributes")
