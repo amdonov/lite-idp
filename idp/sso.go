@@ -227,10 +227,12 @@ func (i *IDP) loginWithCert(r *http.Request, authnReq *model.AuthnRequest) (*mod
 	// check to see if they presented a client cert
 	if clientCert, err := getCertFromRequest(r); err == nil {
 		user := &model.User{
-			Name:    getSubjectDN(clientCert.Subject),
-			Format:  "urn:oasis:names:tc:SAML:1.1:nameid-format:X509SubjectName",
-			Context: "urn:oasis:names:tc:SAML:2.0:ac:classes:X509",
-			IP:      getIP(r).String()}
+			Name:            getSubjectDN(clientCert.Subject),
+			Format:          "urn:oasis:names:tc:SAML:1.1:nameid-format:X509SubjectName",
+			Context:         "urn:oasis:names:tc:SAML:2.0:ac:classes:X509",
+			IP:              getIP(r).String(),
+			X509Certificate: clientCert.Raw,
+		}
 		// Add attributes
 		if err := i.setUserAttributes(user, authnReq); err != nil {
 			return nil, err

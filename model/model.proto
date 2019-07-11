@@ -25,6 +25,7 @@ message User {
     string Context = 3;
     string IP = 4;
     repeated Attribute Attributes = 5;
+    bytes X509Certificate = 6;
 }
 
 // User attributes
