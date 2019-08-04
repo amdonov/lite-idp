@@ -35,7 +35,7 @@ func (sp *serviceProvider) GetRedirect(state []byte) (string, error) {
 		EntityID string
 	}{
 		saml.NewID(),
-		time.Now().Format(time.RFC3339),
+		time.Now().UTC().Format(time.RFC3339),
 		sp.configuration.IDPRedirectEndpoint,
 		sp.configuration.AssertionConsumerServiceURL,
 		sp.configuration.EntityID,

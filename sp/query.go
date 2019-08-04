@@ -55,7 +55,7 @@ func (sp *serviceProvider) buildQueryRequest(nameID string) (io.Reader, error) {
 			Query: saml.AttributeQuery{
 				RequestAbstractType: saml.RequestAbstractType{
 					ID:           saml.NewID(),
-					IssueInstant: time.Now(),
+					IssueInstant: time.Now().UTC(),
 					Issuer:       sp.configuration.EntityID,
 					Version:      "2.0",
 				},

@@ -60,7 +60,7 @@ func (i *IDP) respond(authRequest *model.AuthnRequest, user *model.User,
 }
 
 func (i *IDP) makeAuthnResponse(request *model.AuthnRequest, user *model.User) *saml.Response {
-	now := time.Now()
+	now := time.Now().UTC()
 	fiveFromNow := now.Add(5 * time.Minute)
 	resp := i.makeResponse(request.ID, request.Issuer, user)
 	// Add subject confirmation data and authentication statement
@@ -87,7 +87,7 @@ func (i *IDP) makeAuthnResponse(request *model.AuthnRequest, user *model.User) *
 }
 
 func (i *IDP) makeResponse(id, issuer string, user *model.User) *saml.Response {
-	now := time.Now()
+	now := time.Now().UTC()
 	fiveFromNow := now.Add(5 * time.Minute)
 	s := &saml.Response{
 		StatusResponseType: saml.StatusResponseType{
