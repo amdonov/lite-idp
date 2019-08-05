@@ -33,7 +33,7 @@ func (i *IDP) DefaultQueryHandler() http.HandlerFunc {
 					Response: *response,
 				},
 			}
-			now := time.Now()
+			now := time.Now().UTC()
 			fiveMinutes, _ := time.ParseDuration("5m")
 			fiveFromNow := now.Add(fiveMinutes)
 			attrResp := &saml.AttributeRespEnv{
