@@ -34,3 +34,15 @@ func TestReadSPMetadata(t *testing.T) {
 	}
 	assert.Equal(t, "dex", sp.EntityID, "entity id is wrong")
 }
+
+func TestReadInvalidSPMetadata(t *testing.T) {
+	in, err := os.Open(filepath.Join("testdata", "sp-metadata-invalid.xml"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer in.Close()
+	_, err = ReadSPMetadata(in)
+	if err == nil {
+		t.Fatal("expected failure")
+	}
+}

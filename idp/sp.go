@@ -61,12 +61,19 @@ func ReadSPMetadata(metadata io.Reader) (*ServiceProvider, error) {
 	if err := decoder.Decode(sp); err != nil {
 		return nil, err
 	}
-	return convertMetadata(sp), nil
+	return convertMetadata(sp)
 }
 
-func convertMetadata(spMeta *saml.SPEntityDescriptor) *ServiceProvider {
+func convertMetadata(spMeta *saml.SPEntityDescriptor) (*ServiceProvider, error) {
+	if spMeta == nil {
+		return nil, errors.New("service provider entity descriptor not found")
+	}
+	x509Data := spMeta.SPSSODescriptor.KeyDescriptor.KeyInfo.X509Data
+	if x509Data == nil {
+		return nil, errors.New("service provider's SSO descriptor does not contain required X509Data element")
+	}
 	sp := &ServiceProvider{
-		Certificate: spMeta.SPSSODescriptor.KeyDescriptor.KeyInfo.X509Data.X509Certificate,
+		Certificate: x509Data.X509Certificate,
 		EntityID:    spMeta.EntityDescriptor.EntityID,
 	}
 	sp.AssertionConsumerServices = make([]AssertionConsumerService, len(spMeta.SPSSODescriptor.AssertionConsumerService))
@@ -78,5 +85,5 @@ func convertMetadata(spMeta *saml.SPEntityDescriptor) *ServiceProvider {
 			Location:  val.Location,
 		}
 	}
-	return sp
+	return sp, nil
 }

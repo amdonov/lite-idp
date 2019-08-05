@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<EntityDescriptor xmlns="urn:oasis:names:tc:SAML:2.0:metadata" ID="_0e64271c-fe59-4f93-a3a3-0262fc9c092f" entityID="dex">
+    <Signature xmlns="http://www.w3.org/2000/09/xmldsig#">
+        <SignedInfo xmlns="http://www.w3.org/2000/09/xmldsig#">
+            <CanonicalizationMethod xmlns="http://www.w3.org/2000/09/xmldsig#" Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"></CanonicalizationMethod>
+            <SignatureMethod xmlns="http://www.w3.org/2000/09/xmldsig#" Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1"></SignatureMethod>
+            <Reference xmlns="http://www.w3.org/2000/09/xmldsig#" URI="#_0e64271c-fe59-4f93-a3a3-0262fc9c092f">
+                <Transforms xmlns="http://www.w3.org/2000/09/xmldsig#">
+                    <Transform xmlns="http://www.w3.org/2000/09/xmldsig#" Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature"></Transform>
+                    <Transform xmlns="http://www.w3.org/2000/09/xmldsig#" Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"></Transform>
+                </Transforms>
+                <DigestMethod xmlns="http://www.w3.org/2000/09/xmldsig#" Algorithm="http://www.w3.org/2000/09/xmldsig#sha1"></DigestMethod>
+                <DigestValue xmlns="http://www.w3.org/2000/09/xmldsig#">L4kSvThWAF+5eJ69cTamDfm8APU=</DigestValue>
+            </Reference>
+        </SignedInfo>
+        <SignatureValue xmlns="http://www.w3.org/2000/09/xmldsig#">DLqRQ9vgVaiktfb/rQ83Xajsos+vwX8O6L5/Vpz6ZdrE835EEsmq2YIylHl57Rmu0Jv22IfESk64UEVLkL2b+URIsmTw23nZcScCyP9XWdtWQfWuWvFrpYEEDscoTnjtVjSONI7vXfyngjCDPN4DH8kGN43PcqYJwFKIK49/B47R8XHG4Vf6VHMnAcLL2N517QleM6GeqDwrRGUD5JiiQn+haHUyjtufyGFOZpmlxVpIQje2Mi8yxsOuioIC8p93oJUQzLzjs1TvVawtGf+dNV4TDQJaMcB2bIgdtj4c1pa3ssDJFWy0Y4wWfc9sLRrm7X4LKS/3LNQ+51I8+FlDFw==</SignatureValue>
+        <KeyInfo xmlns="http://www.w3.org/2000/09/xmldsig#">
+            <X509Data xmlns="http://www.w3.org/2000/09/xmldsig#">
+                <X509Certificate xmlns="http://www.w3.org/2000/09/xmldsig#">MIICzDCCAbQCCQCaJRU/CzFSGzANBgkqhkiG9w0BAQsFADAoMQswCQYDVQQGEwJVUzEMMAoGA1UECgwDZGV4MQswCQYDVQQDDAJzcDAeFw0xODA5MDQxODEwMzlaFw0yODA5MDExODEwMzlaMCgxCzAJBgNVBAYTAlVTMQwwCgYDVQQKDANkZXgxCzAJBgNVBAMMAnNwMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAzJZd8K9jxC6mxuR5dw08qicw0VsDN1bAvdInKGzugsJYRH/MfcgrKwLCTZHBGZZFmdHxhca84cG/Wn24Ys5eF1JWhehYocyYqZqY3ESPldDK4ohwCvKhSogpF9hVyi9LnujCgfGOv98atMWDeqTLletCPsHcXzLq3cN58oNl80HXIQKFM7n9ZgUKLqk6d2hT7LeYndZKg5aUQ4jyTfz/S1XgYBDr0utl41HtUsHSYwQDx3v0wMqZVorzk8HrXaXowvUwVct6HxT/c5QxtHCxmm6n6/Mwr8Xzk1yxQq9dLtEOmEtnYgIEhyiUP7CdFPWC37sn9YiGCSjRukE07CyG0wIDAQABMA0GCSqGSIb3DQEBCwUAA4IBAQAJFl+hHwS6xNRtWMgJsu943zv4U8ZksyWAM5bk94ERMwpJVPndJIW0+UAT3Pp/k9E3Lro/AbSIA364LBzLoONOqfeNTUK4YH7wQGfmusI8c28akY5ZfDx8Ixc4oxPkcExh47YkVECSUhMq9gDMI10ePsSkVB7fss1QibmOsGM8WQyQzdmqfHbd7ws0g7P2I+SiR5+FboyliKRdqqSvQ8dL2hEAGtc9mZCPnlriiNzawCYPprH3lA+QWq+SI+QmQqTou05pWl5q+KcWU7INf0wEsXa26qcizqMTMNPuuu8Lp0gmmpUeH1AKVqO8P9VYT+GnkAUdoD3z1GCkLUvPaFYP</X509Certificate>
+            </X509Data>
+        </KeyInfo>
+    </Signature>
+    <SPSSODescriptor xmlns="urn:oasis:names:tc:SAML:2.0:metadata" AuthnRequestsSigned="true" WantAssertionsSigned="false" protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol">
+        <AssertionConsumerService xmlns="urn:oasis:names:tc:SAML:2.0:metadata" Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Artifact" Location="http://127.0.0.1:5556/dex/callback" isDefault="true" index="0"></AssertionConsumerService>
+        <KeyDescriptor xmlns="urn:oasis:names:tc:SAML:2.0:metadata" use="signing">
+            <KeyInfo xmlns="http://www.w3.org/2000/09/xmldsig#">
+            </KeyInfo>
+        </KeyDescriptor>
+    </SPSSODescriptor>
+</EntityDescriptor>
