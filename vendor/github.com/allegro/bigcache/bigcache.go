@@ -2,7 +2,6 @@ package bigcache
 
 import (
 	"fmt"
-	"log"
 	"time"
 )
 
@@ -11,7 +10,7 @@ const (
 )
 
 // BigCache is fast, concurrent, evicting cache created to keep big number of entries without impact on performance.
-// It keeps entries on heap but omits GC for them. To achieve that operations on bytes arrays take place,
+// It keeps entries on heap but omits GC for them. To achieve that, operations take place on byte arrays,
 // therefore entries (de)serialization in front of the cache will be needed in most use cases.
 type BigCache struct {
 	shards       []*cacheShard
@@ -21,7 +20,21 @@ type BigCache struct {
 	config       Config
 	shardMask    uint64
 	maxShardSize uint32
+	close        chan struct{}
 }
+
+// RemoveReason is a value used to signal to the user why a particular key was removed in the OnRemove callback.
+type RemoveReason uint32
+
+const (
+	// Expired means the key is past its LifeWindow.
+	Expired RemoveReason = iota
+	// NoSpace means the key is the oldest and the cache size was at its maximum when Set was called, or the
+	// entry exceeded the maximum shard size.
+	NoSpace
+	// Deleted means Delete was called and this key was removed as a result.
+	Deleted
+)
 
 // NewBigCache initialize new instance of BigCache
 func NewBigCache(config Config) (*BigCache, error) {
@@ -46,23 +59,33 @@ func newBigCache(config Config, clock clock) (*BigCache, error) {
 		config:       config,
 		shardMask:    uint64(config.Shards - 1),
 		maxShardSize: uint32(config.maximumShardSize()),
+		close:        make(chan struct{}),
 	}
 
-	var onRemove func(wrappedEntry []byte)
-	if config.OnRemove == nil {
-		onRemove = cache.notProvidedOnRemove
-	} else {
+	var onRemove func(wrappedEntry []byte, reason RemoveReason)
+	if config.OnRemove != nil {
 		onRemove = cache.providedOnRemove
+	} else if config.OnRemoveWithReason != nil {
+		onRemove = cache.providedOnRemoveWithReason
+	} else {
+		onRemove = cache.notProvidedOnRemove
 	}
 
 	for i := 0; i < config.Shards; i++ {
-		cache.shards[i] = initNewShard(config, onRemove)
+		cache.shards[i] = initNewShard(config, onRemove, clock)
 	}
 
 	if config.CleanWindow > 0 {
 		go func() {
-			for t := range time.Tick(config.CleanWindow) {
-				cache.cleanUp(uint64(t.Unix()))
+			ticker := time.NewTicker(config.CleanWindow)
+			defer ticker.Stop()
+			for {
+				select {
+				case t := <-ticker.C:
+					cache.cleanUp(uint64(t.Unix()))
+				case <-cache.close:
+					return
+				}
 			}
 		}()
 	}
@@ -70,89 +93,75 @@ func newBigCache(config Config, clock clock) (*BigCache, error) {
 	return cache, nil
 }
 
-// Get reads entry for the key
+// Close is used to signal a shutdown of the cache when you are done with it.
+// This allows the cleaning goroutines to exit and ensures references are not
+// kept to the cache preventing GC of the entire cache.
+func (c *BigCache) Close() error {
+	close(c.close)
+	return nil
+}
+
+// Get reads entry for the key.
+// It returns an ErrEntryNotFound when
+// no entry exists for the given key.
 func (c *BigCache) Get(key string) ([]byte, error) {
 	hashedKey := c.hash.Sum64(key)
 	shard := c.getShard(hashedKey)
-	shard.lock.RLock()
-
-	itemIndex := shard.hashmap[hashedKey]
-
-	if itemIndex == 0 {
-		shard.lock.RUnlock()
-		return nil, notFound(key)
-	}
-
-	wrappedEntry, err := shard.entries.Get(int(itemIndex))
-	if err != nil {
-		shard.lock.RUnlock()
-		return nil, err
-	}
-	if entryKey := readKeyFromEntry(wrappedEntry); key != entryKey {
-		if c.config.Verbose {
-			log.Printf("Collision detected. Both %q and %q have the same hash %x", key, entryKey, hashedKey)
-		}
-		shard.lock.RUnlock()
-		return nil, notFound(key)
-	}
-	shard.lock.RUnlock()
-	return readEntry(wrappedEntry), nil
+	return shard.get(key, hashedKey)
 }
 
 // Set saves entry under the key
 func (c *BigCache) Set(key string, entry []byte) error {
 	hashedKey := c.hash.Sum64(key)
 	shard := c.getShard(hashedKey)
-	shard.lock.Lock()
+	return shard.set(key, hashedKey, entry)
+}
 
-	currentTimestamp := uint64(c.clock.epoch())
-
-	if previousIndex := shard.hashmap[hashedKey]; previousIndex != 0 {
-		if previousEntry, err := shard.entries.Get(int(previousIndex)); err == nil {
-			resetKeyFromEntry(previousEntry)
-		}
-	}
-
-	if oldestEntry, err := shard.entries.Peek(); err == nil {
-		c.onEvict(oldestEntry, currentTimestamp, shard.removeOldestEntry)
-	}
-
-	w := wrapEntry(currentTimestamp, hashedKey, key, entry, &shard.entryBuffer)
-
-	for {
-		if index, err := shard.entries.Push(w); err == nil {
-			shard.hashmap[hashedKey] = uint32(index)
-			shard.lock.Unlock()
-			return nil
-		} else if shard.removeOldestEntry() != nil {
-			shard.lock.Unlock()
-			return fmt.Errorf("Entry is bigger than max shard size.")
-		}
-	}
+// Delete removes the key
+func (c *BigCache) Delete(key string) error {
+	hashedKey := c.hash.Sum64(key)
+	shard := c.getShard(hashedKey)
+	return shard.del(key, hashedKey)
 }
 
 // Reset empties all cache shards
 func (c *BigCache) Reset() error {
 	for _, shard := range c.shards {
-		shard.lock.Lock()
 		shard.reset(c.config)
-		shard.lock.Unlock()
 	}
-
 	return nil
 }
 
 // Len computes number of entries in cache
 func (c *BigCache) Len() int {
 	var len int
-
 	for _, shard := range c.shards {
-		shard.lock.RLock()
 		len += shard.len()
-		shard.lock.RUnlock()
 	}
-
 	return len
+}
+
+// Capacity returns amount of bytes store in the cache.
+func (c *BigCache) Capacity() int {
+	var len int
+	for _, shard := range c.shards {
+		len += shard.capacity()
+	}
+	return len
+}
+
+// Stats returns cache's statistics
+func (c *BigCache) Stats() Stats {
+	var s Stats
+	for _, shard := range c.shards {
+		tmp := shard.getStats()
+		s.Hits += tmp.Hits
+		s.Misses += tmp.Misses
+		s.DelHits += tmp.DelHits
+		s.DelMisses += tmp.DelMisses
+		s.Collisions += tmp.Collisions
+	}
+	return s
 }
 
 // Iterator returns iterator function to iterate over EntryInfo's from whole cache.
@@ -160,10 +169,10 @@ func (c *BigCache) Iterator() *EntryInfoIterator {
 	return newIterator(c)
 }
 
-func (c *BigCache) onEvict(oldestEntry []byte, currentTimestamp uint64, evict func() error) bool {
+func (c *BigCache) onEvict(oldestEntry []byte, currentTimestamp uint64, evict func(reason RemoveReason) error) bool {
 	oldestTimestamp := readTimestampFromEntry(oldestEntry)
 	if currentTimestamp-oldestTimestamp > c.lifeWindow {
-		evict()
+		evict(Expired)
 		return true
 	}
 	return false
@@ -171,15 +180,7 @@ func (c *BigCache) onEvict(oldestEntry []byte, currentTimestamp uint64, evict fu
 
 func (c *BigCache) cleanUp(currentTimestamp uint64) {
 	for _, shard := range c.shards {
-		shard.lock.Lock()
-		for {
-			if oldestEntry, err := shard.entries.Peek(); err != nil {
-				break
-			} else if evicted := c.onEvict(oldestEntry, currentTimestamp, shard.removeOldestEntry); !evicted {
-				break
-			}
-		}
-		shard.lock.Unlock()
+		shard.cleanUp(currentTimestamp)
 	}
 }
 
@@ -187,9 +188,15 @@ func (c *BigCache) getShard(hashedKey uint64) (shard *cacheShard) {
 	return c.shards[hashedKey&c.shardMask]
 }
 
-func (c *BigCache) providedOnRemove(wrappedEntry []byte) {
+func (c *BigCache) providedOnRemove(wrappedEntry []byte, reason RemoveReason) {
 	c.config.OnRemove(readKeyFromEntry(wrappedEntry), readEntry(wrappedEntry))
 }
 
-func (c *BigCache) notProvidedOnRemove(wrappedEntry []byte) {
+func (c *BigCache) providedOnRemoveWithReason(wrappedEntry []byte, reason RemoveReason) {
+	if c.config.onRemoveFilter == 0 || (1<<uint(reason))&c.config.onRemoveFilter > 0 {
+		c.config.OnRemoveWithReason(readKeyFromEntry(wrappedEntry), readEntry(wrappedEntry), reason)
+	}
+}
+
+func (c *BigCache) notProvidedOnRemove(wrappedEntry []byte, reason RemoveReason) {
 }

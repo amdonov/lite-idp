@@ -31,7 +31,7 @@ func (b *bigcacheStore) Get(key string) ([]byte, error) {
 	if len(entry) == 7 {
 		// this might be a deleted key
 		if "DELETED" == string(entry) {
-			return nil, &bigcache.EntryNotFoundError{}
+			return nil, bigcache.ErrEntryNotFound
 		}
 	}
 	return entry, err
