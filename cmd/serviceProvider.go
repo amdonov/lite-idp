@@ -62,6 +62,7 @@ var serviceProviderCmd = &cobra.Command{
 			sps = append(sps, serviceProvider)
 		}
 		viper.Set("sps", sps)
+		fmt.Println("Successfully added service provider from metadata", args[0])
 		return viper.WriteConfig()
 	},
 }
