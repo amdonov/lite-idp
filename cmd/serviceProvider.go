@@ -28,6 +28,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var out io.Writer = os.Stdout // modified during testing
+
 // serviceProviderCmd represents the serviceProvider command
 var serviceProviderCmd = &cobra.Command{
 	Use:   "service-provider metadata",
@@ -62,8 +64,10 @@ var serviceProviderCmd = &cobra.Command{
 			sps = append(sps, serviceProvider)
 		}
 		viper.Set("sps", sps)
-		fmt.Println("Successfully added service provider from metadata", args[0])
-		return viper.WriteConfig()
+		if err = viper.WriteConfig(); err == nil {
+			fmt.Fprintln(out, "Successfully added service provider from metadata", args[0])
+		}
+		return err
 	},
 }
 
