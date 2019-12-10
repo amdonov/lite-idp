@@ -32,25 +32,25 @@ func (i *IDP) DefaultECPHandler() http.HandlerFunc {
 		// We require transport authentication rather than message authentication
 		tlsCert, err := getCertFromRequest(r)
 		if tlsCert == nil || err != nil {
-			http.Error(w, "403 Forbidden", http.StatusForbidden)
+			i.Error(w, "403 Forbidden", http.StatusForbidden)
 			return
 		}
 		log.Infof("received ecp request from %s", getSubjectDN(tlsCert.Subject))
 
 		request, user, err := i.processECPRequest(w, r)
 		if err != nil {
-			sendSOAPFault(w, "SOAP-ENV:Client", err.Error())
+			sendSOAPFault(i, w, "SOAP-ENV:Client", err.Error())
 			return
 		}
 
 		if err := i.respond(request, user, w, r); err != nil {
-			sendSOAPFault(w, "SOAP-ENV:Server", err.Error())
+			sendSOAPFault(i, w, "SOAP-ENV:Server", err.Error())
 			return
 		}
 	}
 }
 
-func sendSOAPFault(w http.ResponseWriter, code, fault string) {
+func sendSOAPFault(i *IDP, w http.ResponseWriter, code, fault string) {
 	envelope := saml.SOAPFaultEnvelope{
 		Body: saml.SOAPFaultBody{
 			Fault: saml.SOAPFault{
@@ -65,7 +65,7 @@ func sendSOAPFault(w http.ResponseWriter, code, fault string) {
 	_ = encoder.Encode(envelope)
 	_ = encoder.Flush()
 
-	http.Error(w, b.String(), http.StatusInternalServerError)
+	i.Error(w, b.String(), http.StatusInternalServerError)
 }
 
 func (i *IDP) processECPRequest(w http.ResponseWriter, r *http.Request) (*model.AuthnRequest, *model.User, error) {

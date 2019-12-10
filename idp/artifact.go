@@ -32,7 +32,7 @@ func (i *IDP) DefaultArtifactResolveHandler() http.HandlerFunc {
 		// We require transport authentication rather than message authentication
 		tlsCert, err := getCertFromRequest(r)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusUnauthorized)
+			i.Error(w, err.Error(), http.StatusUnauthorized)
 			return
 		}
 		log.Infof("received artifact resolution request from %s", getSubjectDN(tlsCert.Subject))
@@ -46,21 +46,21 @@ func (i *IDP) processArtifactResolutionRequest(w http.ResponseWriter, r *http.Re
 	err := decoder.Decode(&resolveEnv)
 	// TODO confirm appropriate error response for this service
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		i.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	artifact := resolveEnv.Body.ArtifactResolve.Artifact
 	data, err := i.TempCache.Get(artifact)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		i.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	artifactResponse := &model.ArtifactResponse{}
 	err = proto.Unmarshal(data, artifactResponse)
 	// TODO confirm appropriate error response for this service
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		i.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	now := time.Now().UTC()
@@ -88,7 +88,7 @@ func (i *IDP) processArtifactResolutionRequest(w http.ResponseWriter, r *http.Re
 	signature, err := i.signer.CreateSignature(response.Assertion)
 	// TODO confirm appropriate error response for this service
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		i.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	response.Assertion.Signature = signature
@@ -104,7 +104,7 @@ func (i *IDP) sendArtifactResponse(authRequest *model.AuthnRequest, user *model.
 	w http.ResponseWriter, r *http.Request) error {
 	target, err := url.Parse(authRequest.AssertionConsumerServiceURL)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		i.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 	parameters := url.Values{}
 	artifact := getArtifact(i.entityID)
@@ -115,7 +115,7 @@ func (i *IDP) sendArtifactResponse(authRequest *model.AuthnRequest, user *model.
 	}
 	data, err := proto.Marshal(response)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		i.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 	i.TempCache.Set(artifact, data)
 	parameters.Add("SAMLart", artifact)

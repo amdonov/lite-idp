@@ -51,6 +51,7 @@ type IDP struct {
 	ECPHandler             http.HandlerFunc
 	PasswordLoginHandler   http.HandlerFunc
 	QueryHandler           http.HandlerFunc
+	Error                  func(w http.ResponseWriter, error string, code int)
 	UIHandler              http.Handler
 	Auditor                Auditor
 	handler                http.Handler
@@ -72,6 +73,9 @@ type IDP struct {
 // Handler returns the IDP's http.Handler including all sub routes or an error
 func (i *IDP) Handler() (http.Handler, error) {
 	if i.handler == nil {
+		if i.Error == nil {
+			i.Error = http.Error
+		}
 		if i.Auditor == nil {
 			i.Auditor = DefaultAuditor()
 		}

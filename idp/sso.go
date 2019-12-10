@@ -218,7 +218,7 @@ func (i *IDP) DefaultRedirectSSOHandler() http.HandlerFunc {
 		}()
 		if err != nil {
 			log.Error(err)
-			http.Error(w, err.Error(), http.StatusBadRequest)
+			i.Error(w, err.Error(), http.StatusBadRequest)
 		}
 	}
 }

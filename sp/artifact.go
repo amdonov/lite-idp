@@ -36,20 +36,20 @@ func (sp *serviceProvider) ArtifactFunc(callback ArtifactCallback) http.HandlerF
 		err := r.ParseForm()
 		if err != nil {
 			log.Error(err)
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			i.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
 		state, err := sp.retrieveState(r)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusUnauthorized)
+			i.Error(w, err.Error(), http.StatusUnauthorized)
 			return
 		}
 
 		// call the IdP to get the SAML assertion
 		assertion, err := sp.resolveArtifact(r.Form.Get("SAMLart"))
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusUnauthorized)
+			i.Error(w, err.Error(), http.StatusUnauthorized)
 			return
 		}
 

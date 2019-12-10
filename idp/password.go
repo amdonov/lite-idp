@@ -101,7 +101,7 @@ func (i *IDP) DefaultPasswordLoginHandler() http.HandlerFunc {
 			return err
 		}()
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			i.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 	}
 }
