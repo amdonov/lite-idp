@@ -64,8 +64,8 @@ func (i *IDP) processArtifactResolutionRequest(w http.ResponseWriter, r *http.Re
 		i.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	now := time.Now().UTC()
 	response := i.makeAuthnResponse(artifactResponse.Request, artifactResponse.User)
+	now := time.Now().UTC()
 	artResponseEnv := saml.ArtifactResponseEnvelope{
 		Body: saml.ArtifactResponseBody{
 			ArtifactResponse: saml.ArtifactResponse{
