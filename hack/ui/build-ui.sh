@@ -5,4 +5,4 @@ npm run build
 cp assets/img/favicon.ico dist
 # can't use -o option
 go-bindata-assetfs -pkg ui dist/...
-mv bindata.go ../../ui/
+mv bindata_assetfs.go ../../ui/bindata.go

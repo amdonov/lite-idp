@@ -21,5 +21,5 @@ function urldecode(str) {
 }
 if ('error' in params) {
     $("#errorBox").removeClass('hidden');
-    $("#errorMsg").html(urldecode(params['error']));
+    $("#errorMsg").text(urldecode(params['error']));
 }
