@@ -16,7 +16,6 @@ package idp
 
 import (
 	"encoding/xml"
-	"fmt"
 	"net/http"
 	"net/url"
 	"time"
@@ -64,8 +63,8 @@ func (i *IDP) processArtifactResolutionRequest(w http.ResponseWriter, r *http.Re
 		i.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	response := i.makeAuthnResponse(artifactResponse.Request, artifactResponse.User)
 	now := time.Now().UTC()
+	response := i.makeAuthnResponse(artifactResponse.Request, artifactResponse.User)
 	artResponseEnv := saml.ArtifactResponseEnvelope{
 		Body: saml.ArtifactResponseBody{
 			ArtifactResponse: saml.ArtifactResponse{
@@ -84,16 +83,6 @@ func (i *IDP) processArtifactResolutionRequest(w http.ResponseWriter, r *http.Re
 				Response: *response,
 			},
 		},
-	}
-
-	notOnOrAfter := response.Assertion.Conditions.NotOnOrAfter
-	if !notOnOrAfter.IsZero() && now.After(notOnOrAfter) {
-		i.Error(w, fmt.Sprintf("at %s got response that cannot be processed because it expired at %s", now, notOnOrAfter), http.StatusBadRequest)
-	}
-
-	notBefore := response.Assertion.Conditions.NotBefore
-	if !notBefore.IsZero() && now.Before(notBefore) {
-		i.Error(w, fmt.Sprintf("at %s got response that cannot be processed before %s", now, notBefore), http.StatusBadRequest)
 	}
 
 	signature, err := i.signer.CreateSignature(response.Assertion)
