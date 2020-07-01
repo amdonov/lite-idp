@@ -53,9 +53,31 @@ func (sp *serviceProvider) ArtifactFunc(callback ArtifactCallback) http.HandlerF
 			return
 		}
 
+		// validate the assertion has a valid time
+		if err = sp.validateAssertion(assertion); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
 		// allow the application to write the response
 		callback(w, r, state, assertion)
 	}
+}
+
+func (sp *serviceProvider) validateAssertion(assertion *saml.Assertion) error {
+	now := time.Now().UTC()
+
+	notOnOrAfter := assertion.Conditions.NotOnOrAfter
+	if !notOnOrAfter.IsZero() && now.After(notOnOrAfter) {
+		return fmt.Errorf("at %s got response that cannot be processed because it expired at %s", now, notOnOrAfter)
+	}
+
+	notBefore := assertion.Conditions.NotBefore
+	if !notBefore.IsZero() && now.Before(notBefore) {
+		return fmt.Errorf("at %s got response that cannot be processed before %s", now, notBefore)
+	}
+
+	return nil
 }
 
 func (sp *serviceProvider) retrieveState(r *http.Request) (state []byte, err error) {
