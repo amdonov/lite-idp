@@ -54,7 +54,7 @@ func (sp *serviceProvider) ArtifactFunc(callback ArtifactCallback) http.HandlerF
 		}
 
 		// validate the assertion has a valid time
-		if err = sp.validateAssertion(assertion); err != nil {
+		if err = sp.validateAssertion(assertion, time.Now().UTC()); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
@@ -64,16 +64,22 @@ func (sp *serviceProvider) ArtifactFunc(callback ArtifactCallback) http.HandlerF
 	}
 }
 
-func (sp *serviceProvider) validateAssertion(assertion *saml.Assertion) error {
-	now := time.Now().UTC()
+func (sp *serviceProvider) validateAssertion(assertion *saml.Assertion, now time.Time) error {
+	// get the threshold from configuration, or default it to 0 seconds
+	threshold, err := time.ParseDuration(sp.configuration.Threshold)
+	if err != nil {
+		threshold = 0 * time.Second
+	}
 
 	notOnOrAfter := assertion.Conditions.NotOnOrAfter
-	if !notOnOrAfter.IsZero() && now.After(notOnOrAfter) {
+	// check if the "now" time is after the specified time, subtracting the threshold from the time
+	if !notOnOrAfter.IsZero() && now.Add(threshold*-1).After(notOnOrAfter) {
 		return fmt.Errorf("at %s got response that cannot be processed because it expired at %s", now, notOnOrAfter)
 	}
 
 	notBefore := assertion.Conditions.NotBefore
-	if !notBefore.IsZero() && now.Before(notBefore) {
+	// check if the "now" time is before the specified time, adding the threshold to the time
+	if !notBefore.IsZero() && now.Add(threshold).Before(notBefore) {
 		return fmt.Errorf("at %s got response that cannot be processed before %s", now, notBefore)
 	}
 

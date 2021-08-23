@@ -46,6 +46,7 @@ type Configuration struct {
 	Timeout   time.Duration
 	TLSConfig *tls.Config
 	Cache     store.Cache
+	Threshold string
 }
 
 // New creates a service provider from the provided configuration
