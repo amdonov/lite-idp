@@ -167,9 +167,9 @@ func Test_serviceProvider_validateAssertionWithThreshold(t *testing.T) {
 		EntityID:                    "https://test/",
 		AssertionConsumerServiceURL: "http://test",
 		TLSConfig:                   tlsConfigClient,
-		Threshold:                   "1m",
+		TimestampMargin:             1 * time.Minute,
 	})
-	// valid assertion with the threshold
+	// valid assertion with the margin
 	assertion := &saml.Assertion{
 		Conditions: &saml.Conditions{
 			NotBefore:    time.Now(),
@@ -178,22 +178,22 @@ func Test_serviceProvider_validateAssertionWithThreshold(t *testing.T) {
 	}
 	err = sp.(*serviceProvider).validateAssertion(assertion)
 	assert.Equal(t, nil, err)
-	// assertion that is before the NotBefore time but the threshold makes it pass
+	// assertion that is before the NotBefore time but the margin makes it pass
 	assertion.Conditions.NotBefore = time.Now().Add(time.Minute * 1)
 	err = sp.(*serviceProvider).validateAssertion(assertion)
 	assert.Equal(t, nil, err)
-	// assertion that is before the NotBefore time and past the threshold
+	// assertion that is before the NotBefore time and past the margin
 	assertion.Conditions.NotBefore = time.Now().Add(time.Minute * 5)
 	err = sp.(*serviceProvider).validateAssertion(assertion)
 	assert.NotEqual(t, nil, err)
 	assert.Contains(t, err.Error(), "got response that cannot be processed before")
 	// reset NotBefore
 	assertion.Conditions.NotBefore = time.Now()
-	// assertion that is after the NotOnOrAfter time but the threshold makes it pass
+	// assertion that is after the NotOnOrAfter time but the margin makes it pass
 	assertion.Conditions.NotOnOrAfter = time.Now().Add(time.Minute * -1)
 	err = sp.(*serviceProvider).validateAssertion(assertion)
 	assert.Equal(t, nil, err)
-	// assertion that is after the NotOnOrAfter time and past the threshold
+	// assertion that is after the NotOnOrAfter time and past the margin
 	assertion.Conditions.NotOnOrAfter = time.Now().Add(time.Minute * -5)
 	err = sp.(*serviceProvider).validateAssertion(assertion)
 	assert.NotEqual(t, nil, err)
