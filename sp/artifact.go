@@ -66,21 +66,16 @@ func (sp *serviceProvider) ArtifactFunc(callback ArtifactCallback) http.HandlerF
 
 func (sp *serviceProvider) validateAssertion(assertion *saml.Assertion) error {
 	now := time.Now().UTC()
-	// get the threshold from configuration, or default it to 0 seconds
-	threshold, err := time.ParseDuration(sp.configuration.Threshold)
-	if err != nil {
-		threshold = 0 * time.Second
-	}
 
 	notOnOrAfter := assertion.Conditions.NotOnOrAfter
 	// check if the "now" time is after the specified time, subtracting the threshold from the time
-	if !notOnOrAfter.IsZero() && now.Add(threshold*-1).After(notOnOrAfter) {
+	if !notOnOrAfter.IsZero() && now.Add(sp.threshold*-1).After(notOnOrAfter) {
 		return fmt.Errorf("at %s got response that cannot be processed because it expired at %s", now, notOnOrAfter)
 	}
 
 	notBefore := assertion.Conditions.NotBefore
 	// check if the "now" time is before the specified time, adding the threshold to the time
-	if !notBefore.IsZero() && now.Add(threshold).Before(notBefore) {
+	if !notBefore.IsZero() && now.Add(sp.threshold).Before(notBefore) {
 		return fmt.Errorf("at %s got response that cannot be processed before %s", now, notBefore)
 	}
 

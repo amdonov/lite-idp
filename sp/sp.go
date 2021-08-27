@@ -69,12 +69,18 @@ func New(conf Configuration) (ServiceProvider, error) {
 				TLSClientConfig: conf.TLSConfig,
 			}}
 	}
+	// get the threshold from configuration, or default it to 0 seconds
+	threshold, err := time.ParseDuration(conf.Threshold)
+	if err != nil {
+		threshold = 0 * time.Second
+	}
 	serviceProvider := &serviceProvider{
 		configuration:   conf,
 		requestTemplate: templ,
 		signer:          signer,
 		client:          client,
 		stateCache:      conf.Cache,
+		threshold:       threshold,
 	}
 
 	return serviceProvider, nil
@@ -86,4 +92,5 @@ type serviceProvider struct {
 	signer          xmlsig.Signer
 	client          *http.Client
 	stateCache      store.Cache
+	threshold       time.Duration
 }
