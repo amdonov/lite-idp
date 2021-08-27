@@ -135,24 +135,23 @@ func Test_serviceProvider_validateAssertion(t *testing.T) {
 		AssertionConsumerServiceURL: "http://test",
 		TLSConfig:                   tlsConfigClient,
 	})
-	now := time.Now().UTC()
 	// valid assertion
 	assertion := &saml.Assertion{
 		Conditions: &saml.Conditions{
-			NotBefore:    now,
-			NotOnOrAfter: now.Add(time.Minute * 5),
+			NotBefore:    time.Now(),
+			NotOnOrAfter: time.Now().Add(time.Minute * 5),
 		},
 	}
-	err = sp.(*serviceProvider).validateAssertion(assertion, now)
+	err = sp.(*serviceProvider).validateAssertion(assertion)
 	assert.Equal(t, nil, err)
 	// assertion that is before the NotBefore time
-	assertion.Conditions.NotBefore = now.Add(time.Hour * 5)
-	err = sp.(*serviceProvider).validateAssertion(assertion, now)
+	assertion.Conditions.NotBefore = time.Now().Add(time.Hour * 5)
+	err = sp.(*serviceProvider).validateAssertion(assertion)
 	assert.NotEqual(t, nil, err)
 	assert.Contains(t, err.Error(), "got response that cannot be processed before")
 	// assertion that is after the NotOnOrAfter time
-	assertion.Conditions.NotOnOrAfter = now.Add(time.Hour * -5)
-	err = sp.(*serviceProvider).validateAssertion(assertion, now)
+	assertion.Conditions.NotOnOrAfter = time.Now().Add(time.Hour * -5)
+	err = sp.(*serviceProvider).validateAssertion(assertion)
 	assert.NotEqual(t, nil, err)
 	assert.Contains(t, err.Error(), "got response that cannot be processed because it expired at")
 }
@@ -168,20 +167,35 @@ func Test_serviceProvider_validateAssertionWithThreshold(t *testing.T) {
 		EntityID:                    "https://test/",
 		AssertionConsumerServiceURL: "http://test",
 		TLSConfig:                   tlsConfigClient,
-		Threshold:                   "1s",
+		Threshold:                   "1m",
 	})
-	now := time.Now().UTC()
 	// valid assertion with the threshold
 	assertion := &saml.Assertion{
 		Conditions: &saml.Conditions{
-			NotBefore:    now,
-			NotOnOrAfter: now.Add(time.Minute * 1),
+			NotBefore:    time.Now(),
+			NotOnOrAfter: time.Now().Add(time.Minute * 5),
 		},
 	}
-	// set the "now" time to the limit plus the threshold, it should pass
-	err = sp.(*serviceProvider).validateAssertion(assertion, now.Add(time.Minute*1).Add(time.Second*1))
+	err = sp.(*serviceProvider).validateAssertion(assertion)
 	assert.Equal(t, nil, err)
-	// set the "now" time to now minus the threshold, it should pass
-	err = sp.(*serviceProvider).validateAssertion(assertion, now.Add(time.Second*-1))
+	// assertion that is before the NotBefore time but the threshold makes it pass
+	assertion.Conditions.NotBefore = time.Now().Add(time.Minute * 1)
+	err = sp.(*serviceProvider).validateAssertion(assertion)
 	assert.Equal(t, nil, err)
+	// assertion that is before the NotBefore time and past the threshold
+	assertion.Conditions.NotBefore = time.Now().Add(time.Minute * 5)
+	err = sp.(*serviceProvider).validateAssertion(assertion)
+	assert.NotEqual(t, nil, err)
+	assert.Contains(t, err.Error(), "got response that cannot be processed before")
+	// reset NotBefore
+	assertion.Conditions.NotBefore = time.Now()
+	// assertion that is after the NotOnOrAfter time but the threshold makes it pass
+	assertion.Conditions.NotOnOrAfter = time.Now().Add(time.Minute * -1)
+	err = sp.(*serviceProvider).validateAssertion(assertion)
+	assert.Equal(t, nil, err)
+	// assertion that is after the NotOnOrAfter time and past the threshold
+	assertion.Conditions.NotOnOrAfter = time.Now().Add(time.Minute * -5)
+	err = sp.(*serviceProvider).validateAssertion(assertion)
+	assert.NotEqual(t, nil, err)
+	assert.Contains(t, err.Error(), "got response that cannot be processed because it expired at")
 }

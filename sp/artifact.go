@@ -54,7 +54,7 @@ func (sp *serviceProvider) ArtifactFunc(callback ArtifactCallback) http.HandlerF
 		}
 
 		// validate the assertion has a valid time
-		if err = sp.validateAssertion(assertion, time.Now().UTC()); err != nil {
+		if err = sp.validateAssertion(assertion); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
@@ -64,7 +64,8 @@ func (sp *serviceProvider) ArtifactFunc(callback ArtifactCallback) http.HandlerF
 	}
 }
 
-func (sp *serviceProvider) validateAssertion(assertion *saml.Assertion, now time.Time) error {
+func (sp *serviceProvider) validateAssertion(assertion *saml.Assertion) error {
+	now := time.Now().UTC()
 	// get the threshold from configuration, or default it to 0 seconds
 	threshold, err := time.ParseDuration(sp.configuration.Threshold)
 	if err != nil {
