@@ -78,7 +78,11 @@ func (i *IDP) DefaultPasswordLoginHandler() http.HandlerFunc {
 			if err != nil {
 				return err
 			}
-			requestID := r.Form.Get("requestId")
+			var requestID string
+			if requestID = r.Form.Get("requestId"); requestID == `` {
+				//try pulling it from a query parameter
+				requestID = r.URL.Query().Get("requestId")
+			}
 			data, err := i.TempCache.Get(requestID)
 			if err != nil {
 				return err
