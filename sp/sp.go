@@ -42,10 +42,11 @@ type Configuration struct {
 	IDPQueryEndpoint            string
 	// Optional override of client added for testing
 	// but may have other uses
-	Client    *http.Client
-	Timeout   time.Duration
-	TLSConfig *tls.Config
-	Cache     store.Cache
+	Client          *http.Client
+	Timeout         time.Duration
+	TLSConfig       *tls.Config
+	Cache           store.Cache
+	TimestampMargin time.Duration
 }
 
 // New creates a service provider from the provided configuration
@@ -74,6 +75,7 @@ func New(conf Configuration) (ServiceProvider, error) {
 		signer:          signer,
 		client:          client,
 		stateCache:      conf.Cache,
+		timestampMargin: conf.TimestampMargin,
 	}
 
 	return serviceProvider, nil
@@ -85,4 +87,5 @@ type serviceProvider struct {
 	signer          xmlsig.Signer
 	client          *http.Client
 	stateCache      store.Cache
+	timestampMargin time.Duration
 }

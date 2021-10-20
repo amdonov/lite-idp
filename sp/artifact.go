@@ -68,12 +68,14 @@ func (sp *serviceProvider) validateAssertion(assertion *saml.Assertion) error {
 	now := time.Now().UTC()
 
 	notOnOrAfter := assertion.Conditions.NotOnOrAfter
-	if !notOnOrAfter.IsZero() && now.After(notOnOrAfter) {
+	// check if the "now" time is after the specified time, subtracting the margin from the time
+	if !notOnOrAfter.IsZero() && now.Add(sp.timestampMargin*-1).After(notOnOrAfter) {
 		return fmt.Errorf("at %s got response that cannot be processed because it expired at %s", now, notOnOrAfter)
 	}
 
 	notBefore := assertion.Conditions.NotBefore
-	if !notBefore.IsZero() && now.Before(notBefore) {
+	// check if the "now" time is before the specified time, adding the margin to the time
+	if !notBefore.IsZero() && now.Add(sp.timestampMargin).Before(notBefore) {
 		return fmt.Errorf("at %s got response that cannot be processed before %s", now, notBefore)
 	}
 
