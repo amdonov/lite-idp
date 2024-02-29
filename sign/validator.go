@@ -15,7 +15,7 @@
 package sign
 
 import (
-	"github.com/ma314smith/signedxml"
+	"github.com/moov-io/signedxml"
 )
 
 type signedxmlValidator struct {

@@ -2,3 +2,8 @@ node_modules/
 certs/
 .vscode/
 dist/
+/.idea/.gitignore
+/.idea/lite-idp.iml
+/.idea/modules.xml
+/.idea/vcs.xml
+/.cache/
