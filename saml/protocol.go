@@ -96,6 +96,7 @@ type Response struct {
 	XMLName      xml.Name `xml:"urn:oasis:names:tc:SAML:2.0:protocol Response"`
 	RawAssertion string   `xml:",innerxml"`
 	Assertion    *Assertion
+	Signature    *xmlsig.Signature
 }
 
 type Status struct {

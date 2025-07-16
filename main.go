@@ -24,6 +24,8 @@ import (
 	"github.com/amdonov/lite-idp/cmd"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+
+	log "github.com/sirupsen/logrus"
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -65,6 +67,12 @@ func initConfig() {
 		fmt.Println("using config file:", viper.ConfigFileUsed())
 	} else {
 		fmt.Println("failed to load config file:", err)
+	}
+
+	if level, err := log.ParseLevel(viper.GetString("log-level")); err != nil {
+		log.Warn("invalid log-level - using default")
+	} else {
+		log.SetLevel(level)
 	}
 }
 

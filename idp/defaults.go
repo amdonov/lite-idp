@@ -19,6 +19,7 @@ import (
 )
 
 func init() {
+	viper.SetDefault("log-level", "info")
 	viper.SetDefault("cookie-name", "lite-idp-sess")
 	viper.SetDefault("tls-certificate", "/etc/lite-idp/cert.pem")
 	viper.SetDefault("tls-private-key", "/etc/lite-idp/key.pem")

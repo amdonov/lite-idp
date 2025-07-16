@@ -34,6 +34,12 @@ func (i *IDP) sendPostResponse(authRequest *model.AuthnRequest, user *model.User
 		return err
 	}
 	response.Assertion.Signature = signature
+	// Sign the response object too since some systems require it
+	respSignature, err := i.signer.CreateSignature(response)
+	if err != nil {
+		return err
+	}
+	response.Signature = respSignature
 	var xmlbuff bytes.Buffer
 	memWriter := bufio.NewWriter(&xmlbuff)
 	memWriter.Write([]byte(xml.Header))

@@ -15,16 +15,16 @@
 package idp
 
 import (
-	"crypto/x509"
-	"encoding/base64"
 	"encoding/xml"
 	"errors"
+	"fmt"
 	"io"
 
 	"github.com/amdonov/lite-idp/saml"
+	"github.com/wrouesnel/certutils"
 )
 
-//ServiceProvider stores the Service Provider metadata required by the IdP
+// ServiceProvider stores the Service Provider metadata required by the IdP
 type ServiceProvider struct {
 	EntityID                  string
 	AssertionConsumerServices []AssertionConsumerService
@@ -34,14 +34,21 @@ type ServiceProvider struct {
 }
 
 func (sp *ServiceProvider) parseCertificate() error {
-	block, err := base64.StdEncoding.DecodeString(sp.Certificate)
+	certs, err := certutils.LoadCertificatesFromPem([]byte(sp.Certificate))
 	if err != nil {
-		return errors.New("failed to parse PEM block containing the public key")
+		return fmt.Errorf("failed to parse certificates: %W", err)
 	}
-	cert, err := x509.ParseCertificate(block)
-	if err != nil {
-		return errors.New("failed to parse certificate: " + err.Error())
+
+	if len(certs) > 1 {
+		return errors.New("only 1 certificate should be presented per service provider")
 	}
+
+	if len(certs) == 0 {
+		return errors.New("no certificates read from provided PEM block")
+	}
+
+	cert := certs[0]
+
 	sp.publicKey = cert.PublicKey
 	return nil
 }

@@ -50,6 +50,8 @@ func (i *IDP) validateRequest(request *saml.AuthnRequest, r *http.Request) error
 		return errors.New("request from an unregistered issuer")
 	}
 	// Determine the right assertion consumer service
+	log.Debugf("requested assertion service: index %v url %v",
+		request.AssertionConsumerServiceIndex, request.AssertionConsumerServiceURL)
 	var acs *AssertionConsumerService
 	for i, a := range sp.AssertionConsumerServices {
 		// Find either the matching service or the default

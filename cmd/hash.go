@@ -15,7 +15,9 @@
 package cmd
 
 import (
+	"bufio"
 	"fmt"
+	"os"
 	"syscall"
 
 	"github.com/spf13/cobra"
@@ -28,16 +30,31 @@ var HashCmd = &cobra.Command{
 	Use:   "hash",
 	Short: "hashes a password for use with example user store",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		fmt.Print("Enter Password: ")
-		bytePassword, err := terminal.ReadPassword(int(syscall.Stdin))
-		if err != nil {
-			return err
+		var bytePassword []byte
+		var err error
+		isTerminal := terminal.IsTerminal(int(syscall.Stdin))
+		if isTerminal {
+			fmt.Print("Enter Password: ")
+			bytePassword, err = terminal.ReadPassword(int(syscall.Stdin))
+			if err != nil {
+				return err
+			}
+		} else {
+			bio := bufio.NewScanner(os.Stdin)
+			bio.Scan()
+			err = bio.Err()
+			if err != nil {
+				return err
+			}
+			bytePassword = bio.Bytes()
 		}
 		hashedPassword, err := hashPassword(bytePassword)
 		if err != nil {
 			return err
 		}
-		fmt.Println()
+		if isTerminal {
+			fmt.Println()
+		}
 		fmt.Println(string(hashedPassword))
 		return nil
 	},
